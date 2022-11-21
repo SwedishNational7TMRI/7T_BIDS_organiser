@@ -12,26 +12,13 @@ Conversion of DCMs in /sourcedata into NIfTIs in /rawdata
 Arguments:
   sID				Subject ID (e.g. 7T049S03) 
 Options:
+  -heuristic                    Input heuristic file to heudiconv (default: $codedir/7T049_CVI_heuristic.py)
   -h / -help / --help           Print usage.
 "
   exit;
 }
 
 ################ ARGUMENTS ################
-
-[ $# -ge 1 ] || { usage; }
-command=$@
-sID=$1
-
-shift
-while [ $# -gt 0 ]; do
-    case "$1" in
-	-h|-help|--help) usage; ;;
-	-*) echo "$0: Unrecognized option $1" >&2; usage; ;;
-	*) break ;;
-    esac
-    shift
-done
 
 # Define Folders
 codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -40,6 +27,30 @@ rawdatadir=$studydir/rawdata;
 sourcedatadir=$studydir/sourcedata;
 scriptname=`basename $0 .sh`
 logdir=$studydir/derivatives/logs/sub-${sID}
+
+# Define Defaults
+heuristicfile=$codedir/7T049_CVI_heuristic.py
+
+# Read required input arguments
+[ $# -ge 1 ] || { usage; }
+command=$@
+sID=$1
+shift
+
+# Read optional input arguments
+while [ $# -gt 0 ]; do
+    case "$1" in
+  	-heuristic) shift; heuristicfile=$1; ;;
+    -h|-help|--help) usage; ;;
+    -*) echo "$0: Unrecognized option $1" >&2; usage; ;;
+    *) break ;;
+    esac
+    shift
+done
+
+# Get location and name for heuristic file
+heuristicfiledir=`dirname $heuristicfile`
+heuristicfilename=`basename $heuristicfile`
 
 if [ ! -d $rawdatadir ]; then mkdir -p $rawdatadir; fi
 if [ ! -d $logdir ]; then mkdir -p $logdir; fi
@@ -66,12 +77,12 @@ docker run --name heudiconv_container \
            --rm \
            -it \
            --volume $studydir:/base \
-	   --volume $codedir:/code \
+           --volume $heuristicfiledir:/heuristic \
            --volume $sourcedatadir:/dataIn:ro \
            --volume $rawdatadir:/dataOut \
            nipy/heudiconv \
                -d /dataIn/sub-{subject}/*/*.dcm \
-               -f /code/7T049_CVI_heuristic.py \
+               -f /heuristic/$heuristicfilename \
                -s ${sID} \
                -c dcm2niix \
                -b \
