@@ -1,16 +1,16 @@
 #!/bin/bash
-## 7T049 CVI/Visual Brain Study
-#
+
 usage()
 {
   base=$(basename "$0")
   echo "usage: $base sID [options]
-Conversion of DCMs in /sourcedata into NIfTIs in /rawdata
-1. NIfTI-conversion to BIDS-compliant /rawdata folder
-2. validation of BIDS dataset
+  Conversion of DCMs in /sourcedata into NIfTIs in /rawdata
+  1. NIfTI-conversion to BIDS-compliant /rawdata folder
+  2. validation of BIDS dataset
+  3. Run of MRIQC on structural data
 
 Arguments:
-  sID				Subject ID (e.g. 7T049S03) 
+  sID				Subject ID (e.g. 107) 
 Options:
   -h / -help / --help           Print usage.
 "
@@ -35,7 +35,7 @@ done
 
 # Define Folders
 codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-studydir=$PWD
+studydir=`pwd` #studydir=`dirname -- "$codedir"`
 rawdatadir=$studydir/rawdata;
 sourcedatadir=$studydir/sourcedata;
 scriptname=`basename $0 .sh`
@@ -54,7 +54,6 @@ userID=$(id -u):$(id -g)
 
 ###   Get docker images:   ###
 docker pull nipy/heudiconv:latest
-docker pull bids/validator:latest
 
 ################ PROCESSING ################
 
@@ -73,23 +72,9 @@ docker run --name heudiconv_container \
                -d /dataIn/sub-{subject}/*/*.dcm \
                -f /code/7T049_CVI_heuristic.py \
                -s ${sID} \
-               -c dcm2niix \
+               -c none \
                -b \
                -o /dataOut \
                --overwrite \
            > $logdir/sub-${sID}_$scriptname.log 2>&1 
-           
-# heudiconv makes files read only
-#    We need some files to be writable, eg for defacing
-# (11 May) Commented out
-#chmod -R u+wr,g+wr $rawdatadir
-
-###   Run BIDS validator   ###
-docker run --name BIDSvalidation_container \
-           --user $userID \
-           --rm \
-           --volume $rawdatadir:/data:ro \
-           bids/validator \
-               /data \
-           > $studydir/derivatives/bids-validator_report.txt 2>&1
            

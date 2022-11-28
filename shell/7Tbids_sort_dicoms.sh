@@ -1,5 +1,4 @@
 #!/bin/bash
-# 7T049_CVI/VisualBrain study
 
 usage()
 {
@@ -9,7 +8,6 @@ usage()
   
   Required arguments:
   -d dicomdir    Directory of unordered dicoms (input)
-  -s sourcedir   Sourcedata directory (output)
   -i sID				 Subject ID (e.g. 107) 
   
   Options:
@@ -20,13 +18,10 @@ usage()
 }
 
 ################ ARGUMENTS ################
-
-# studykey=$studydir/dicomdir/MIPP_running_nbr_2_Study_ID.tsv
-
 [ $# -ge 1 ] || { usage; }
 
+sourcedir=$STUDYDIR_7TBIDS/{sourcedata}
 dicomdir=
-sourcedir=
 sID=
 studykey=
 verbose=0
@@ -35,9 +30,6 @@ while getopts "d:s:i:k:vh" o; do
   case "${o}" in
   d)
     dicomdir=${OPTARG}
-    ;;
-  s)
-    sorucedir=${OPTARG}
     ;;
   i)
     sID=${OPTARG}
@@ -56,7 +48,7 @@ while getopts "d:s:i:k:vh" o; do
     ;;
   esac
 done
-shit $((OPTIND - 1))
+
 
 if [ -z $dicomdir ]; then
   echo "Need to specify dicomdir"
@@ -71,17 +63,18 @@ if [ -z $sID ]; then
 fi
 
 scriptname=`basename $0 .sh`
-
+folder_id=
 if [[ ! -f $studykey ]]; then
-	echo "No studykey file, sID = MIPPsID = $MIPPsID"
-	sID=$MIPPsID;
+	echo "No studykey file, folder = sID = $sID"
+	folder_id=$sID;
 else
-	sID=`cat $studykey | grep $sID | awk '{ print $2 }'`
+	folder_id=`cat $studykey | grep $sID | awk '{ print $2 }'`
 	if [[ $sID == "" ]]; then
 		echo "Study Key file provided but no entry for $sID in $studykey"
 		exit;
 	fi
 fi
+
 
 ################ PROCESSING ################
 
@@ -90,7 +83,6 @@ logdir=$sourcedir/logs/sub-${sID}
 if [ ! -d $logdir ]; then 
   mkdir -p $logdir
 fi
-
 echo "Executing $0 $@ "> $logdir/sub-${sID}_$scriptname.log 2>&1 
 cat $0 >> $logdir/sub-${sID}_$scriptname.log 2>&1 
 
@@ -98,6 +90,12 @@ cat $0 >> $logdir/sub-${sID}_$scriptname.log 2>&1
 if [ ! -d $sourcedir ]; then 
   mkdir $sourcedir; 
 fi
-dcm2niix -b o -r y -w 1 -o $sourcedir -f sub-$sID/s%2s_%d/%d_%5r.dcm $dicomdir/${MIPPsID} \
-	>> $logdir/sub-${sID}_$scriptname.log 2>&1 
 
+logfile=$logdir/sub-${sID}_$scriptname.log
+cmd="dcm2niix -b o -r y -w 0 -o $sourcedir -f sub-$sID/s%2s_%d/%d_%5r.dcm $dicomdir/${folder_id}"
+
+if [ "$verbose" ]; then
+  $cmd | tee $logfile
+else
+  $cmd >> $logfile 2>&1 
+fi
