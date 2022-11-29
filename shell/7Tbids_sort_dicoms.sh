@@ -8,10 +8,11 @@ usage()
   
   Required arguments:
   -d dicomdir    Directory of unordered dicoms (input)
-  -i sID				 Subject ID (e.g. 107) 
+  -i sID				 Subject ID (e.g. 107)
+  -q             Study directory
   
   Options:
-  -k			Key to translate MIPP running number into study Subject ID (BIDS), but if not provided MIPP running number = study Subject ID
+  -k			Key to translate MIPP running number into study Subject ID (BIDS)
   -h / -help / --help           Print usage.
 "
   exit;
@@ -20,13 +21,13 @@ usage()
 ################ ARGUMENTS ################
 [ $# -ge 1 ] || { usage; }
 
-sourcedir=$STUDYDIR_7TBIDS/{sourcedata}
+studydir=
 dicomdir=
 sID=
 studykey=
 verbose=0
 
-while getopts "d:s:i:k:vh" o; do
+while getopts "d:s:i:k:q:vh" o; do
   case "${o}" in
   d)
     dicomdir=${OPTARG}
@@ -36,6 +37,9 @@ while getopts "d:s:i:k:vh" o; do
     ;;
   k)
     studykey=${OPTARG}
+    ;;
+  q)
+    studydir=${OPTARG}
     ;;
   v)
     verbose=1
@@ -61,6 +65,8 @@ fi
 if [ -z $sID ]; then
   echo "Need to specify subject ID"
 fi
+
+sourcedir=$studydir/${sourcedata}
 
 scriptname=`basename $0 .sh`
 folder_id=

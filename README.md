@@ -1,28 +1,59 @@
 # 7T BIDS organiser
-Tools to organise 7T data into BIDS structure
+Bash and python scripts to convert DICOM data from the 7T into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
+
+## Installation
+This software is best used as a python package which is installed using `pip`. Recommended that you do this in a an isolated conda or virtual environment. To install, navigate to the main directory and execute
+```sh
+python -m pip install -e .
+```
+
+To download the necessary docker containers execute
+```sh
+shell download_docker.sh
+```
+
+After you have installed the python package you will have a set of tools available:
+- `7Tbids_import_dicoms`: Takes dicoms from an unsorted `dicomdir` and puts them in a organised folder structure
+- `7Tbids_nifti2bids`: Takes your data from dicom to bids validated structure with nifti files in the `rawdata` folder. This is done in two steps
+    1. Call with option `--organize` to run `heudiconv` without conversion. This requires that you point to appropriate heuristics file. Generates `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`.
+    2. Call with option `--convert` to do the actual nifti conversion.
+- `7Tbids_validate`: Used to validate your BIDS tree structure.
 
 
-Bash and python scripts to convert DICOM data into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
+The following folder structure and conventions are assumed to be used
+- Original dicoms in `dicomdir`. These are "raw" DICOMS exported from the 7T archive. This folder will be used as inputs to some scripts and can be located anywhere.
+    - Your DICOM data might be stored with run numbers instead of subject ID. To do this mapping you can use a `study_key.tsv` file. See example in this repository.
+- Your study directory is the path to where you want your study data to be stored.
+- It is recommended to store your own study code in a specific directory, `code_dir`.
+- Re-named and re-arranged dicoms will be stored in  `study_dir/sourcedata`, which is the BIDS sourcedata-folder
+- BIDS-organised NIfTIs in `study_dir/rawdata`
+- You need a heuristics file for `heudiconv`. This should be stored in your code folder. See the `misc` folder here in the repo for example.
 
-The folder structure will be
-- Original dicoms in `/dicomdir`
-- Re-named and re-arranged dicoms in are `/sourcedata`, which is the BIDS sourcedata-folder
-- BIDS-organised NIfTIs in `/rawdata`
+To convert data from raw DICOMS to a BIDS valid structure with NIFTI files it is recommended to set up a shell script with the following structure.
 
+```sh
+STUDYDIR=<my_bids_dir>
+CODEDIR=<my_code_dir>
+DICOMDIR=<my_dicom_dir>
 
-To complete the conversion: 
+study_key=${STUDYDIR}/study_key.tsv
+heuristics_file=7T049_CVI_heuristic.py # This is assumed to live in the CODEDIR
 
-1. Run script `DcmDicomdir_to_DcmSourcedata.sh` \
-This re-names the dicoms and sorts them into `/sourcedata`
+# dicomdir -> sourcedata
+7Tbids_import_dicoms --dicom_dir=$DICOMDIR --study_dir=$STUDYDIR --id=S02 --key=$study_key
 
-2. Run script `DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh` \
-Runs `heudiconv` without conversion
-Generates `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`.
+# Organize and analyze sourcedata folder
+7Tbids_nifti2bids --study_dir=$STUDYDIR \
+                  --code_dir=$CODEDIR --id S02 \
+                  --heuristic_file=$heuristics_file \
+                  --organize
 
-3. Run script `DcmSourcedata_to_NiftiRawdata.sh` \
-This converts the dicoms in `/sourcedata` to BIDS-organised NIfTIs in `/rawdata` using the heudiconv routine. 
-- [heudiconv](https://github.com/nipy/heudiconv) is run with using a Docker container using rules set in the python file `7T049_CVI_heuristic.py`
-- The script also makes a BIDS-validation
+# sourcedata -> rawdata
+7Tbids_nifti2bids --study_dir=$STUDYDIR \
+                  --code_dir=$CODEDIR --id S02 \
+                  --heuristic_file=$heuristics_file \
+                  --convert
 
-4. Run script `MRIQC.sh` \
-This script runs [MRIQC](https://github.com/bids-standard/bids-validator) on the data
+# Validate rawdata
+7Tbids_validate --study_dir=$STUDYDIR
+```

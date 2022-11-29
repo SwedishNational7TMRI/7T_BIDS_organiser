@@ -1,0 +1,6 @@
+nibabel
+bids
+nilearn
+numpy
+pydicom
+matplotlib
