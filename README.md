@@ -1,10 +1,15 @@
 # 7T BIDS organiser
 Bash and python scripts to convert DICOM data from the 7T into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
 
-## Installation
-This software is best used as a python package which is installed using `pip`. Recommended that you do this in a an isolated conda or virtual environment. To install, navigate to the main directory and execute
+## Installation
+This software is best used as a python package which is installed using `pip`. Python 3.8 or higher is required. Recommended that you do this in a an isolated conda or virtual environment. To install, navigate to the main directory and execute
 ```sh
 python -m pip install -e .
+```
+
+To install python 3.8 in conda use:
+```
+conda create -n py38 python=3.8
 ```
 
 To download the necessary docker containers execute
@@ -33,7 +38,8 @@ To convert data from raw DICOMS to a BIDS valid structure with NIFTI files it is
 
 ```sh
 STUDYDIR=<my_bids_dir>
-CODEDIR=<my_code_dir>
+CODEDIR=<my_code_dir>conda create -n py38 python=3.8
+
 DICOMDIR=<my_dicom_dir>
 
 study_key=${STUDYDIR}/study_key.tsv
@@ -57,3 +63,9 @@ heuristics_file=7T049_CVI_heuristic.py # This is assumed to live in the CODEDIR
 # Validate rawdata
 7Tbids_validate --study_dir=$STUDYDIR
 ```
+
+### TODO:
+- Change nifti2bids -> dicom2bids
+- Remove code directory as input. Instead assume that there is a code directory where the file is stored. Add this to documentation.
+- Make the default that `dicomdir` lives under `studydir` if not provided as input. If input provided, then use that one.
+- Subject ID is 7T049XXX, the full string, and not only S02 for instance. Change this. Participant ID is then sub-<SUBJECT_ID>, e.g., sub-7T049S02
