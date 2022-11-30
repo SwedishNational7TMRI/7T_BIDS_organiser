@@ -1,6 +1,35 @@
 # 7T BIDS organiser
 Bash and python scripts to convert DICOM data from the 7T into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
 
+A BIDS-organised `/studydir` for a neuroimaging study can look like
+```sh
+/studydir/
+    ├── code
+    ├── derivatives <= harbours processed data
+    ├── sourcedata  <= harbours DICOM images 
+    ├── rawdata     <= harbours BIDS organised NIfTI images
+    ├── sequences
+    └── stimuli
+```
+Note, the only folder that needs to be truely BIDS compliant is the `/rawdata` folder
+```sh
+/rawdata/
+    ├── CHANGES
+    ├── dataset_description.json
+    ├── participants.json
+    ├── participants.tsv
+    ├── README
+    ├── sub-S01
+    │   ├── anat
+    │   ├── dwi
+    │   ├── fmap
+    │   ├── func
+    │   ├── session.tsv
+    │   ├── sub-S01_scans.json
+    │   └── sub-S01_scans.tsv
+    └── task-rest_bold.json
+```
+
 ## Installation
 This software is best used as a python package which is installed using `pip`. Python 3.8 or higher is required. Recommended that you do this in a an isolated conda or virtual environment. To install, navigate to the main directory and execute
 ```sh
