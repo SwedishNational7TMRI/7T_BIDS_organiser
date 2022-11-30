@@ -1,9 +1,9 @@
 # 7T BIDS organiser
 Bash and python scripts to convert DICOM data from the 7T into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
 
-A BIDS-organised `/studydir` for a neuroimaging study can look like
+The BIDS specification is preferably browsed [online](https://bids-specification.readthedocs.io/en/stable/). A BIDS-organised `/studydir` for a neuroimaging study can look like
 ```sh
-/studydir/
+/studydir
     ├── code
     ├── derivatives <= harbours processed data
     ├── sourcedata  <= harbours DICOM images 
@@ -11,23 +11,24 @@ A BIDS-organised `/studydir` for a neuroimaging study can look like
     ├── sequences
     └── stimuli
 ```
-Note, the only folder that needs to be truely BIDS compliant is the `/rawdata` folder
+Note, the only folder that needs to be truely [BIDS compliant](https://bids-specification.readthedocs.io/en/stable/03-modality-agnostic-files.html) is the `/rawdata` folder
 ```sh
-/rawdata/
-    ├── CHANGES
-    ├── dataset_description.json
-    ├── participants.json
-    ├── participants.tsv
-    ├── README
-    ├── sub-S01
-    │   ├── anat
-    │   ├── dwi
-    │   ├── fmap
-    │   ├── func
-    │   ├── session.tsv
-    │   ├── sub-S01_scans.json
-    │   └── sub-S01_scans.tsv
-    └── task-rest_bold.json
+/studydir
+    └── rawdata
+            ├── CHANGES
+            ├── dataset_description.json
+            ├── participants.json
+            ├── participants.tsv
+            ├── README
+            ├── sub-S01
+            │   ├── anat
+            │   ├── dwi
+            │   ├── fmap
+            │   ├── func
+            │   ├── session.tsv
+            │   ├── sub-S01_scans.json
+            │   └── sub-S01_scans.tsv
+            └── task-rest_bold.json
 ```
 
 ## Installation
