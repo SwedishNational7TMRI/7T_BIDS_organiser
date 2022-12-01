@@ -26,7 +26,6 @@ dicomdir=
 sID=
 studykey=
 verbose=0
-sourcedir=$studydir/sourcedata
 
 while getopts "d:s:i:k:q:vh" o; do
   case "${o}" in
@@ -54,6 +53,7 @@ while getopts "d:s:i:k:q:vh" o; do
   esac
 done
 
+sourcedir=$studydir/sourcedata
 
 if [ -z $dicomdir ]; then
   echo "Need to specify dicomdir"
