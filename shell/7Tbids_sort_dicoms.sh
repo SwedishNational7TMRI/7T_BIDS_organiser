@@ -66,7 +66,7 @@ if [ -z $sID ]; then
   echo "Need to specify subject ID"
 fi
 
-sourcedir=$studydir/${sourcedata}
+sourcedir=$studydir/sourcedata
 
 scriptname=`basename $0 .sh`
 folder_id=
@@ -94,7 +94,7 @@ cat $0 >> $logdir/sub-${sID}_$scriptname.log 2>&1
 
 # Re-arrange DICOMs into sourcedata
 if [ ! -d $sourcedir ]; then 
-  mkdir $sourcedir; 
+  mkdir -p $sourcedir; 
 fi
 
 logfile=$logdir/sub-${sID}_$scriptname.log
