@@ -21,7 +21,8 @@ usage()
 ################ ARGUMENTS ################
 [ $# -ge 1 ] || { usage; }
 
-studydir=
+# Defaults
+studydir=$PWD
 dicomdir=
 sID=
 studykey=
