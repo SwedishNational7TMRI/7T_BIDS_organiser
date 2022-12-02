@@ -1,7 +1,7 @@
 # 7T BIDS organiser
 Bash and python scripts to convert DICOM data from the 7T into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
 
-The BIDS specification/standard is preferably browsed [online](https://bids-specification.readthedocs.io/en/stable/). A BIDS-organised `/studydir` for a neuroimaging study can look like
+The BIDS specification/standard is preferably browsed [online](https://bids-specification.readthedocs.io/en/stable/). A BIDS-organised `studydir` for a neuroimaging study can look like
 ```sh
 /studydir
     ├── code
@@ -59,8 +59,8 @@ After you have installed the python package you will have a set of tools availab
 The following folder structure and conventions are assumed to be used
 - Original dicoms in `dicomdir`. These are "raw" DICOMS exported from the 7T archive. This folder will be used as inputs to some scripts and can be located anywhere.
     - Your DICOM data might be stored with run numbers instead of subject ID. To do this mapping you can use a `study_key.tsv` file. See example in this repository.
-- Your `/studydir` is the path to where you want your study data to be stored.
-- It is recommended to store your own study code in a specific directory, `code`. Suggestions from the BIDS standard is to put is in `/studydir/code`.
+- Your `studydir` is the path to where you want your study data to be stored.
+- It is recommended to store your own study code in a specific directory, `code`. Suggestions from the BIDS standard is to put is in `studydir/code`.
 - Re-named and re-arranged dicoms will be stored in  `studydir/sourcedata`, which is the BIDS sourcedata-folder
 - BIDS-organised NIfTIs in `studydir/rawdata`
 - You need a heuristics file for `heudiconv`. This should be stored in your code-folder. See the `misc` folder here in the repo for example.
