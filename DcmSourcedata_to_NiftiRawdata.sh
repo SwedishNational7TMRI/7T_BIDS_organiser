@@ -10,7 +10,9 @@ Conversion of DCMs in /sourcedata into NIfTIs in /rawdata
 2. validation of BIDS dataset
 
 Arguments:
-  sID				Subject ID (e.g. 7T049S03) 
+  sID				Subject ID (e.g. 7T049S03)
+Example:
+./DcmSourcedata_to_NiftiRawdata.sh 7T049S03
 Options:
   -heuristic                    Input heuristic file to heudiconv (default: $codedir/7T049_CVI_heuristic.py)
   -h / -help / --help           Print usage.
@@ -22,14 +24,16 @@ Options:
 
 # Define Folders
 codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-studydir=$PWD
+#studydir=$PWD
+studydir=`dirname -- "$codedir"`
 rawdatadir=$studydir/rawdata;
-sourcedatadir=$studydir/sourcedata;
+#sourcedatadir=$studydir/sourcedata;
+dicomdir=$studydir/dicomdir;  #use original dicom folder
 scriptname=`basename $0 .sh`
 logdir=$studydir/derivatives/logs/sub-${sID}
 
 # Define Defaults
-heuristicfile=$codedir/7T049_CVI_heuristic.py
+#heuristicfile=$codedir/heuristic.py
 
 # Read required input arguments
 [ $# -ge 1 ] || { usage; }
@@ -49,8 +53,8 @@ while [ $# -gt 0 ]; do
 done
 
 # Get location and name for heuristic file
-heuristicfiledir=`dirname $heuristicfile`
-heuristicfilename=`basename $heuristicfile`
+#heuristicfiledir=`dirname $heuristicfile`
+#heuristicfilename=`basename $heuristicfile`
 
 if [ ! -d $rawdatadir ]; then mkdir -p $rawdatadir; fi
 if [ ! -d $logdir ]; then mkdir -p $logdir; fi
@@ -72,29 +76,35 @@ docker pull bids/validator:latest
 ###   Extract DICOMs into BIDS:   ###
 # The images were extracted and organized in BIDS format:
 
-docker run --name heudiconv_container \
-           --user $userID \
-           --rm \
-           -it \
-           --volume $studydir:/base \
-           --volume $heuristicfiledir:/heuristic \
-           --volume $sourcedatadir:/dataIn:ro \
-           --volume $rawdatadir:/dataOut \
-           nipy/heudiconv \
-               -d /dataIn/sub-{subject}/*/*.dcm \
-               -f /heuristic/$heuristicfilename \
-               -s ${sID} \
-               -c dcm2niix \
-               -b \
-               -o /dataOut \
-               --overwrite \
-           > $logdir/sub-${sID}_$scriptname.log 2>&1 
-           
-# heudiconv makes files read only
-#    We need some files to be writable, eg for defacing
-# (11 May) Commented out
-#chmod -R u+wr,g+wr $rawdatadir
+## Run multiple sessions
+echo " | HEUDICONV is running with muliple sessions..."
+echo " | subject:" ${sID}
+# define sessions automatically
+sessions=$(find $dicomdir/sub-${sID} -type d -maxdepth 1 -mindepth 1 | xargs -I {} basename {})
+for sess in $sessions; do \
+  echo "   session:" ${sess};
+  docker run --name heudiconv_container \
+             --user $userID \
+             --rm \
+             -i \
+  	         --volume $codedir:/code \
+             --volume $dicomdir:/dataIn:ro \
+             --volume $rawdatadir:/dataOut \
+             nipy/heudiconv \
+                 -d /dataIn/sub-{subject}/{session}/*/*.dcm \
+                 -f /code/heuristic.py \
+                 -s ${sID} \
+                 -ss ${sess} \
+                 -c dcm2niix \
+                 -b \
+                 -o /dataOut \
+                 --overwrite \
+             > $logdir/sub-${sID}_ses-${sess}_$scriptname.log 2>&1;
+done
+echo " | ...done"
 
+
+echo " | BIDS validator is running ..."
 ###   Run BIDS validator   ###
 docker run --name BIDSvalidation_container \
            --user $userID \
@@ -103,4 +113,5 @@ docker run --name BIDSvalidation_container \
            bids/validator \
                /data \
            > $studydir/derivatives/bids-validator_report.txt 2>&1
-           
+
+echo " | ...done"
