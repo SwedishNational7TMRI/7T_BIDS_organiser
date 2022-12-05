@@ -11,7 +11,9 @@ Conversion of DCMs in /sourcedata into NIfTIs in /rawdata
 3. Run of MRIQC on structural data
 
 Arguments:
-  sID				Subject ID (e.g. 107) 
+  sID				Subject ID (e.g. 107)
+Example:
+  ./DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh 107
 Options:
   -h / -help / --help           Print usage.
 "
@@ -36,9 +38,11 @@ done
 
 # Define Folders
 codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-studydir=`pwd` #studydir=`dirname -- "$codedir"`
+#studydir=`pwd`
+studydir=`dirname -- "$codedir"`
 rawdatadir=$studydir/rawdata;
-sourcedatadir=$studydir/sourcedata;
+#sourcedatadir=$studydir/sourcedata;
+dicomdir=$studydir/dicomdir; #use original dicom folder
 scriptname=`basename $0 .sh`
 logdir=$studydir/derivatives/logs/sub-${sID}
 
@@ -60,22 +64,45 @@ docker pull nipy/heudiconv:latest
 
 ###   Extract DICOMs into BIDS:   ###
 # The images were extracted and organized in BIDS format:
+# echo " | HEUDICONV is running ..."
+# docker run --name heudiconv_container \
+#            --user $userID \
+#            --rm \
+#            -it \
+#            --volume $dicomdir:/dataIn:ro \
+#            --volume $rawdatadir:/dataOut  \
+#            nipy/heudiconv \
+#                -d /dataIn/sub-{subject}/{session}/*/*.dcm \
+#                -f convertall \
+#                -s ${sID} \
+#                -ss pre \
+#                -c none \
+#                -o /dataOut \
+#                --overwrite \
+#            > $logdir/sub-${sID}_$scriptname.log 2>&1
+# echo " | ...done"
 
-docker run --name heudiconv_container \
-           --user $userID \
-           --rm \
-           -it \
-           --volume $studydir:/base \
-	   --volume $codedir:/code \
-           --volume $sourcedatadir:/dataIn:ro \
-           --volume $rawdatadir:/dataOut \
-           nipy/heudiconv \
-               -d /dataIn/sub-{subject}/*/*.dcm \
-               -f /code/7T049_CVI_heuristic.py \
-               -s ${sID} \
-               -c none \
-               -b \
-               -o /dataOut \
-               --overwrite \
-           > $logdir/sub-${sID}_$scriptname.log 2>&1 
-           
+### Run multiple sessions
+echo " | HEUDICONV is running with muliple sessions..."
+echo " | subject:" ${sID}
+# define sessions automatically
+sessions=$(find $dicomdir/sub-${sID} -type d -maxdepth 1 -mindepth 1 | xargs -I {} basename {})
+for sess in $sessions; do \
+  echo "   session:" ${sess};
+  docker run --name heudiconv_container \
+             --user $userID \
+             --rm \
+             -i \
+             --volume $dicomdir:/dataIn:ro \
+             --volume $rawdatadir:/dataOut  \
+             nipy/heudiconv \
+                 -d /dataIn/sub-{subject}/{session}/*/*.dcm \
+                 -f convertall \
+                 -s ${sID} \
+                 -ss ${sess} \
+                 -c none \
+                 -o /dataOut \
+                 --overwrite \
+             > $logdir/sub-${sID}_ses-${sess}_$scriptname.log 2>&1;
+done
+echo " | ...done"
