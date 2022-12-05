@@ -4,7 +4,7 @@
 usage()
 {
   base=$(basename "$0")
-  echo "usage: $base sID [options]
+  echo "usage: $base sID [options]s
 Conversion of DCMs in /sourcedata into NIfTIs in /rawdata
 1. NIfTI-conversion to BIDS-compliant /rawdata folder
 2. validation of BIDS dataset
