@@ -4,15 +4,14 @@ usage()
 {
   base=$(basename "$0")
   echo "usage: $base dicomdir sourcedir sID [options]
-  Arrangement of DICOMs into organised folders in /sourcedata folder
+  Arrangement of DICOMs into organised folders in /sourcedata folder.
+  Assuming that the dicomdir is stored as a subfolder in the study directory
   
   Required arguments:
-  -d dicomdir    Directory of unordered dicoms (input)
+  -q folder      Study directory
   -i sID				 Subject ID (e.g. 107)
-  -q             Study directory
   
   Options:
-  -k			Key to translate MIPP running number into study Subject ID (BIDS)
   -h / -help / --help           Print usage.
 "
   exit;
@@ -22,22 +21,15 @@ usage()
 [ $# -ge 1 ] || { usage; }
 
 # Defaults
-studydir=$PWD
-dicomdir=
+studydir=
 sID=
 studykey=
 verbose=0
 
-while getopts "d:s:i:k:q:vh" o; do
+while getopts "q:i:vh" o; do
   case "${o}" in
-  d)
-    dicomdir=${OPTARG}
-    ;;
   i)
     sID=${OPTARG}
-    ;;
-  k)
-    studykey=${OPTARG}
     ;;
   q)
     studydir=${OPTARG}
@@ -55,6 +47,7 @@ while getopts "d:s:i:k:q:vh" o; do
 done
 
 sourcedir=$studydir/sourcedata
+dicomdir=$studydir/dicomdir
 
 if [ -z $dicomdir ]; then
   echo "Need to specify dicomdir"
@@ -68,20 +61,8 @@ if [ -z $sID ]; then
   echo "Need to specify subject ID"
 fi
 
-
 scriptname=`basename $0 .sh`
-folder_id=
-if [[ ! -f $studykey ]]; then
-	echo "No studykey file, folder = sID = $sID"
-	folder_id=$sID;
-else
-	folder_id=`cat $studykey | grep $sID | awk '{ print $2 }'`
-	if [[ $sID == "" ]]; then
-		echo "Study Key file provided but no entry for $sID in $studykey"
-		exit;
-	fi
-fi
-
+folder_id=$sID
 
 ################ PROCESSING ################
 

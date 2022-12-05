@@ -10,7 +10,6 @@ usage()
     -i sID				      Subject ID (e.g. 107) 
     -q study directory
     -f heuristics file
-    -c Code directory
     
     Options:
     -d            Run with docker
@@ -32,7 +31,6 @@ organize=
 convert=
 use_docker=
 heuristics_file=
-codedir=
 studydir=
 
 while getopts "i:q:f:c:123dh" opt; do
@@ -45,9 +43,6 @@ while getopts "i:q:f:c:123dh" opt; do
     ;;
   f)
     heuristics_file=${OPTARG}
-    ;;
-  c)
-    codedir=${OPTARG}
     ;;
   d)
     use_docker=1
@@ -114,18 +109,17 @@ if [ "$organize" ]; then
             --rm \
             -it \
             --volume $studydir:/base \
-            --volume $codedir:/code \
             --volume $sourcedatadir:/dataIn:ro \
             --volume $rawdatadir:/dataOut \
             nipy/heudiconv \
                 -d /dataIn/sub-{subject}/*/*.dcm \
-                -f /code/${heuristics_file} \
+                -f /base/code/${heuristics_file} \
                 -o /dataOut \
                 $heudi_opt \
             | tee $logfile
   else
     heudiconv -d $sourcedatadir/sub-{subject}/*/*.dcm \
-              -f $codedir/${heuristics_file} -o $rawdatadir \
+              -f $studydir/code/${heuristics_file} -o $rawdatadir \
               $heudi_opt | tee $logfile
   fi
 fi
@@ -140,20 +134,18 @@ if [ "$convert" ]; then
             --rm \
             -it \
             --volume $studydir:/base \
-      --volume $codedir:/code \
             --volume $sourcedatadir:/dataIn:ro \
             --volume $rawdatadir:/dataOut \
             nipy/heudiconv \
                 -d /dataIn/sub-{subject}/*/*.dcm \
-                -f /code/${heuristics_file} \
+                -f /base/code/${heuristics_file} \
                 -o /dataOut \
                 $heudi_opt \
             | tee $logdir/sub-${sID}_$scriptname.log
   else
-    heudiconv -d $sourcedatadir/sub-{subject}/*/*.dcm -o $rawdatadir -f $codedir/${heuristics_file} \
+    heudiconv -d $sourcedatadir/sub-{subject}/*/*.dcm -o $rawdatadir -f $studydir/code/${heuristics_file} \
               $heudi_opt | tee $logfile
   fi
-
 fi
 
 # 3. BIDS validator

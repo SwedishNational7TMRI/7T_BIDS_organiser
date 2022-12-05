@@ -6,7 +6,6 @@ from .tools import run_make_bids
 def parse_inputs():
     parser = argparse.ArgumentParser(description='Make BIDS Nifti structure')
     parser.add_argument('--study_dir', help='Study directory', type=str, required=True)
-    parser.add_argument('--code_dir', help='Code directory', type=str, required=True)
     parser.add_argument('--heuristic_file', help='Heuristic file for heudiconv', type=str, required=True)
     parser.add_argument('--id', help='Subject ID', type=str, required=True)
     
@@ -22,7 +21,6 @@ def parse_inputs():
 def main():
     args = parse_inputs()
     study_dir = args.study_dir
-    code_dir = args.code_dir
     heuristic_file = args.heuristic_file
     subj_id = args.id
     do_organize = args.organize
@@ -32,7 +30,6 @@ def main():
     docker = args.docker
 
     run_make_bids(study_dir=study_dir,
-                    code_dir=code_dir,
                     heuristic_file=heuristic_file, 
                     subj_id=subj_id,
                     do_organize=do_organize,
