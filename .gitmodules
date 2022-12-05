@@ -1,0 +1,3 @@
+[submodule "lib/linescanning"]
+	path = lib/linescanning
+	url = https://github.com/gjheij/linescanning.git

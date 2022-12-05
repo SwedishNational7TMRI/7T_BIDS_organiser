@@ -18,11 +18,9 @@ def run_make_bids(study_dir, heuristic_file, subj_id,
     print(cmd)
     sp.call(cmd, shell=True)
 
-def run_import_dicoms(dicom_dir, study_dir, subj_id, study_key=None, verbose=False):
+def run_import_dicoms(study_dir, subj_id, verbose=False):
     module_path = os.path.dirname(__file__)
     cmd = os.path.join(module_path, '..', '..', 'shell', '7Tbids_sort_dicoms.sh')
     cmd = f"bash {cmd} -i {subj_id} -q {study_dir}"
-    if study_key:
-        cmd += f" -k {study_key}"
     
     sp.call(cmd, shell=True)

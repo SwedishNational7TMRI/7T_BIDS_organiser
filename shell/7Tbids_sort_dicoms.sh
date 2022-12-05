@@ -80,7 +80,7 @@ if [ ! -d $sourcedir ]; then
 fi
 
 logfile=$logdir/sub-${sID}_$scriptname.log
-cmd="dcm2niix -b o -r y -w 0 -o $sourcedir -f sub-$sID/s%2s_%d/%d_%5r.dcm $dicomdir/${folder_id}"
+cmd="dcm2niix -v 0 -b o -r y -w 0 -o $sourcedir -f sub-$sID/s%2s_%d/%d_%5r.dcm $dicomdir/${folder_id}"
 
 if [ "$verbose" ]; then
   $cmd | tee $logfile

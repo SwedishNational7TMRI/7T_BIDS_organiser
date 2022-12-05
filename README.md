@@ -100,3 +100,17 @@ heuristics_file=7T049_CVI_heuristic.py # This is assumed to live in the CODEDIR
 - Remove code directory as input. Instead assume that there is a code directory where the file is stored. Add this to documentation.
 - Make the default that `dicomdir` lives under `studydir` if not provided as input. If input provided, then use that one.
 - Subject ID is 7T049XXX, the full string, and not only S02 for instance. Change this. Participant ID is then sub-<SUBJECT_ID>, e.g., sub-7T049S02
+
+# Running on mac
+Install brew
+Follow the instructions at https://brew.sh/
+
+Install the coreutils package
+brew install coreutils
+
+Create an Alias or Symlink
+3a. Create an an alias (per user)
+
+You can place your alias in ~/.bashrc, ~/.bash_profile, or wherever you are used to keeping your bash aliases. I personally keep mine in ~/.bashrc
+
+alias readlink=greadlink
