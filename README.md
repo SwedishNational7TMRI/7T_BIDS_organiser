@@ -49,7 +49,7 @@ shell download_docker.sh
 ```
 
 After you have installed the python package you will have a set of tools available:
-- `7Tbids_import_dicoms`: Takes dicoms from an unsorted `dicomdir` and puts them in a organised folder structure `/sourcedata.
+- `7Tbids_import_dicoms`: Takes dicoms from an unsorted `dicomdir` and puts them in a organised folder structure `/sourcedata`.
 - `7Tbids_nifti2bids`: Takes your data from dicoms to BIDS-organised structure with NIfTI files in the `/rawdata` folder using the [heudiconv](https://heudiconv.readthedocs.io/en/latest/) routine. This is done in two steps
     1. Call with option `--organize` to run `heudiconv` without conversion. Generates `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`.
     2. Call with option `--convert` to do the actual nifti conversion. This requires input to appropriate heuristics file (see above).
