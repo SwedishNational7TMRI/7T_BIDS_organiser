@@ -36,7 +36,7 @@ done
 # Define Folders
 codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 studydir=`pwd` #studydir=`dirname -- "$codedir"`
-rawdatadir=$studydir/rawdata;
+rawdatadir=$studydir/temp_rawdata;
 sourcedatadir=$studydir/sourcedata;
 scriptname=`basename $0 .sh`
 logdir=$studydir/derivatives/logs/sub-${sID}

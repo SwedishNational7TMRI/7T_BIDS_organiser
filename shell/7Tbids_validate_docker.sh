@@ -7,17 +7,17 @@ usage()
     Validate BIDS structure
     
     Options:
+    -d
     -h / -help / --help           Print usage.
   "
   exit;
 }
 
-studydir=$1
 userID=$(id -u):$(id -g)
 
-rawdatadir=$studydir/rawdata
+rawdatadir=$1
 scriptname=`basename $0 .sh`
-
+logdir=$studydir/derivatives/logs
 logfile=$logdir/${scriptname}_validate.log
 docker run --name BIDSvalidation_container \
           --user $userID \

@@ -24,18 +24,19 @@ class fix_anat:
 			- runner: task runner executing fix bids
 		"""
 		s.name = "anat"
-		s.bids_out = runner.get_task_conf("bids_output")
+		s.bids_out = runner.app_sd_on_task_conf("bids_output")
 		s.subj = runner.subj
+		long_subj = "sub-" + s.subj
 		#first half of each bids fileanme
-		s.root_folder = "{}/{}/{}/".format(s.bids_out, s.subj, s.name)
-		s.part_filename = s.root_folder + s.subj
+		s.root_folder = "{}/{}/{}/".format(s.bids_out, long_subj, s.name)
+		s.part_filename = s.root_folder + long_subj
 		
 		s.deriv_quit_folder = runner.get_deriv_folder("quit", "anat")
 		
 		#"./derivatives/quit/{}/anat".format(subj)
-		s.sc_pre_str = "anat/{}".format(s.subj)
+		s.sc_pre_str = "anat/{}".format(long_subj)
 		
-		s.quit_complex_input = s.deriv_quit_folder + "/{}_run-1_inv_1and2_MP2RAGE".format(s.subj)
+		s.quit_complex_input = s.deriv_quit_folder + "/{}_run-1_inv_1and2_MP2RAGE".format(long_subj)
 		#these are the files to be deleted
 		s.blacklist=[s.part_filename + "*heudiconv*", 
 					s.part_filename + "*inv-1and2*"]
@@ -140,7 +141,7 @@ class fix_anat:
 		s.runner.sh_run(qi_cmd)
 		for out in ("UNI", "T1"):
 			src = "MP2_{}.nii.gz".format(out)
-			dest = s.deriv_quit_folder + "/{}_acq-mp2rage_run-1_{}.nii.gz".format(s.subj, out)
+			dest = s.deriv_quit_folder + "/sub-{}_acq-mp2rage_run-1_{}.nii.gz".format(s.subj, out)
 			os.rename(src, dest)	
 
 	def execute(s):

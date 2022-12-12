@@ -1,12 +1,11 @@
 {
-	"subj_list": ["sub-7T049S02"],
-	"task_list": ["cat12"],
+	"subj_list": ["7T049S09"],
+	"task_list": ["fix_bids", "mp2rage", "mask_remove_bg"],
 	"global": {
 		"config_name": "QUIT, no FS",	
-		"orig_bids_root": "rawdata",
+		"orig_bids_root": "temp_rawdata",
 		"deriv_folder": "derivatives",
-		"fix_bids": "fixed_rawdata",
-		"log_folder": "logs",
+		"fix_bids": "rawdata",
 		"spm12_path": "/Users/emil/Code/spm12",
 		"freesurfer_license": "$FREESURFER_HOME/license.txt"
 	},

@@ -41,7 +41,8 @@ def fix_bids_task(runner):
 	vprint("running fix_bids convert on " + subj)
 	
 	fix_bids_tree.process_subject(runner)
-	fix_bids_tree.run_validator(runner)
+	#validator is no longer ran!
+	#fix_bids_tree.run_validator(runner)
 
 def mp2rage_task(runner):
 	"""
@@ -123,18 +124,18 @@ class log_item():
 
 		argument:
 			- runner: parent task_runner context
-
 		"""
 		s.runner = runner
-		subj = runner.subj
+		s.subj = runner.subj
 		s.task = runner.cur_task
 		s.t0 = datetime.datetime.now()
 		#pass the running log file to bids_util so the prints will go there
-		task_log_file_name = "{}/logs/{}/{}_{}.log".format(
-			s.runner.get_global("deriv_folder"), subj, subj, s.task)
+		s.log_dir = "{}/logs".format(s.runner.app_sd_on_glob("deriv_folder"))
+		task_log_file_name = s.log_dir + "/sub-{}/{}_{}.log".format(
+			s.subj, s.subj, s.task)
 		s.task_log = open(task_log_file_name, "w")
 		bids_util.update_log(s.task_log, runner.verbose)
-		bids_util.log_print("{}: starting {}".format(s.t0, s.task, subj), force=True)
+		bids_util.log_print("{}: starting {}".format(s.t0, s.task), force=True)
 	
 	def get_time_str(s, seconds):
 		"""
@@ -163,8 +164,8 @@ class log_item():
 		#create log file if missing
 		#read all lines of log file
 		#look for task in log file in first column	
-		log_file = "{}/logs/{}_tasks.log".format(
-			s.runner.get_global("deriv_folder"), s.runner.subj)
+		#log dir should exist. 
+		log_file = s.log_dir + "/{}_tasks.log".format(s.subj)
 		try:
 			f = open(log_file, 'r')
 			old_lines = f.readlines()
@@ -247,8 +248,8 @@ class task_runner():
 		except:
 			first_cmd = cmd
 		cmd_only = os.path.basename(first_cmd)
-		log_dir = "{}/logs/{}".format(s.get_global("deriv_folder"), s.subj)
-		pipe = "" if no_log else "| tee {}/{}_{}.log".format(log_dir, s.subj, cmd_only)
+		
+		pipe = "" if no_log else "| tee {}/{}_{}.log".format(s.subj_log_dir, s.subj, cmd_only)
 		
 		cmd = "{} {} {} {} {}".format(cmd, in_arg, out_arg, extra, pipe)
 		log_print("executing '{}'{}".format(cmd, " NO LOG" if no_log else ""))
@@ -259,23 +260,24 @@ class task_runner():
 
 	def get_deriv_folder(s, name, dest):
 		"""
-		Get the current derivatives folder plus 
+		Get the current derivatives folder which includes study root, 
+		deriv subfolder, long subject name folder.  
 		"""
 		deriv = s.get_global("deriv_folder")
-		return "{}/{}/{}/{}".format(deriv, name, s.subj, dest)
+		return "{}/{}/{}/sub-{}/{}".format(s.study_dir, deriv, name, s.subj, dest)
 
 	def create_derivatives_destination(s, name, dest):
 		"""
 		create a derivatives tree named according to bids standard.
 		
 		arguments:
-			subj: subject folder name
+			subj: subject id
 			name: deriv folder name
 			dest: bids folder to create, such as anat, func etc. 
 			delete_old: optional argument to remove old directory if existing. 
 		"""
-		deriv = s.get_global("deriv_folder")
-		tree = "{}/{}/{}/{}".format(deriv, name, s.subj, dest)
+		deriv = s.app_sd_on_glob("deriv_folder")
+		tree = "{}/{}/sub-{}/{}".format(deriv, name, s.subj, dest)
 		delete_old=False
 		if os.path.exists(tree) and delete_old:
 			remove_tree(tree)
@@ -293,6 +295,13 @@ class task_runner():
 		"""
 		return s.config[s.cur_task][key]
 
+	def app_sd_on_glob(s, key):
+		return os.path.join(s.study_dir, s.config["global"][key])
+
+	def app_sd_on_task_conf(s, key):
+		return os.path.join(s.study_dir, s.config[s.cur_task][key])
+	
+
 	def get_global(s, key):
 		"""
 		fetch a global option from config dict/json file, 
@@ -301,7 +310,6 @@ class task_runner():
 		#TODO: ponder defaults
 		global_defaults = {
 			"deriv_folder": "derivatives",
-			"log_folder": "logs",
 			"orig_bids_root": "rawdata"}
 		try:
 			return s.config["global"][key]
@@ -310,13 +318,14 @@ class task_runner():
 			s.config["global"][key] = default_val
 			return default_val
 	
-	def __init__(s, study_dir=None, json_config=None, task_arg=None, dummy=False, verbose=False):
+	def __init__(s, study_dir, json_config=None, task_arg=None, dummy=False, verbose=False):
 		"""
 		set up the task runner object given the program arguments
 		"""
 		s.verbose = verbose
 		s.subj = None
 		s.cur_task = None
+		s.study_dir = study_dir
 		s.code_path = os.path.join(study_dir, 'code')
 		s.dummy_run = dummy
 		
@@ -324,7 +333,7 @@ class task_runner():
 			#fetch a default config
 			json_config = os.path.join(study_dir, "/pipeline_conf.json")
 		else:
-			json_config = os.path.join(study_dir, 'code', json_config)
+			json_config = json_config
 		
 		print("loading " + json_config)
 		input_json = open(json_config)
@@ -334,15 +343,12 @@ class task_runner():
 		
 		# Add study_root path to relevant folders
 		print(s.config)
-		s.config['global']['study_root'] = study_dir
-		study_root = s.config['global']['study_root']
 		# Append study root to keys
-		for k in ["orig_bids_root", "deriv_folder", "fix_bids", "log_folder"]:
-			s.config['global'][k] = os.path.join(study_root, s.config['global'][k])
+		#for k in ["orig_bids_root", "deriv_folder", "fix_bids"]:
+		#	s.config['global'][k] = os.path.join(study_root, s.config['global'][k])
+		#
+		#s.config['fix_bids']['bids_output'] = os.path.join(study_root, s.config['fix_bids']['bids_output'])
 		
-		s.config['fix_bids']['bids_output'] = os.path.join(study_root, s.config['fix_bids']['bids_output'])
-		
-
 		if(not task_arg == None):
 			s.task_list = [task_arg[0]]
 		else:
@@ -363,9 +369,13 @@ class task_runner():
 			subj: a subject, typically from a list
 		"""
 		s.subj = subj 
-		if (not bids_util.find_subject("{}/participants.tsv".format(s.get_global("orig_bids_root")), s.subj)):
+		participants_file = "{}/participants.tsv".format(
+			s.app_sd_on_glob("orig_bids_root"))
+		print(participants_file)
+		if (not bids_util.find_subject(participants_file, "sub-" + s.subj)):
 			print("Error: Invalid subject {}".format(subj))
 			return
+		s.subj_log_dir = "{}/logs/sub-{}".format(s.app_sd_on_glob("deriv_folder"), s.subj)
 		for task in s.task_list:
 			s.execute_task(task)
 
@@ -384,25 +394,24 @@ class task_runner():
 		except: 
 			print("Error: Invalid task " + task_name)
 			return
-		try:
-			#fail early if illegal task so we dont log non existing tasks
-			log_print("running {} for {}".format(task_name, s.subj), force=True)
-			log_dir = "{}/logs/{}".format(s.get_global("deriv_folder"), s.subj)
-			if not os.path.exists(log_dir):
-				os.makedirs(log_dir)
-			s.cur_task = task_name
-			task_log = log_item(s)
-			s.task_config = s.config[task_name]
-			task_function(s)
-		except Exception as e:
-			print("Error: Task error: " + str(e))
-			task_log.write_error(str(e))
+		#try:
+		#fail early if illegal task so we dont log non existing tasks
+		log_print("running {} for {}".format(task_name, s.subj), force=True)
+		if not os.path.exists(s.subj_log_dir):
+			os.makedirs(s.subj_log_dir)
+		s.cur_task = task_name
+		task_log = log_item(s)
+		s.task_config = s.config[task_name]
+		task_function(s)
+		#except Exception as e:
+		#	print("Error: Task error: " + str(e))
+		#	task_log.write_error(str(e))
 		#write to log
 		task_log.close()
 
 #this will be stored in the log, might be useful if future versions are 
 #are incompatible? or not. 
-PROGRAM_VERSION = 0.2
+PROGRAM_VERSION = 0.3
 
 def main():
 	"""
@@ -416,11 +425,13 @@ def main():
 	parser.add_argument('-c', '--config', default=None, type=str)
 	parser.add_argument('-t', '--task', nargs=1, default=None, type=str)
 	parser.add_argument('-d', '--dummy', action='store_true', default=False)
-	parser.add_argument('--study_dir', required=True, type=str)
+	parser.add_argument('-s', '--study_dir', required=True, type=str)
 	parser.add_argument('subj_list', nargs='*')
 	args = parser.parse_args()
-	print(args)
-
+	
+	if (args.study_dir == None):
+		sys.exit("Must supply a study directory root")
+		
 	#check if task is in there
 	runner = task_runner(args.study_dir, args.config, args.task, dummy=args.dummy, verbose=args.verbose)
 	

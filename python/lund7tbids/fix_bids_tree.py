@@ -29,18 +29,19 @@ def add_subject_to_participants(runner):
 	arguments:
 		- runner: task_runner parent 
 	"""
-	old_part_tsv = "{}/participants.tsv".format(runner.get_global("orig_bids_root"))
+	old_part_tsv = "{}/participants.tsv".format(runner.app_sd_on_glob("orig_bids_root"))
 	#first find the current subjects line in old particpants.tsv
 	found = False
-	in_old_tsv = find_subject(old_part_tsv, runner.subj)
+	long_subj = "sub-" + runner.subj
+	in_old_tsv = find_subject(old_part_tsv, long_subj)
 	if not in_old_tsv:
-		raise(Exception("Participant {} not in participants.tsv".format(runner.subj)))
+		raise(Exception("Participant {} not in participants.tsv".format(long_subj)))
 	try:
 		with open(old_part_tsv, 'r') as f:
 			for cur_part_line in f.readlines():
 				try:
 					subj_name, rest_line  = cur_part_line.split('\t', 1)
-					if(subj_name == runner.subj):
+					if(subj_name == long_subj):
 						found = True
 						subj_part_line = cur_part_line
 						break
@@ -48,14 +49,14 @@ def add_subject_to_participants(runner):
 					#ignore non tab lines
 					pass
 		if not found:
-			raise(Exception("Participant {} not in participants.tsv".format(runner.subj)))
+			raise(Exception("Participant {} not in participants.tsv".format(long_subj)))
 	except Exception as e:
 		log_print(str(e))
 		sys.exit(str(e))
 		
 	#then try to find the line in the new participants.tsv
 	#(fix bids might have been run before and we dont want two lines)
-	new_part_tsv = "{}/participants.tsv".format(runner.get_task_conf("bids_output"))
+	new_part_tsv = "{}/participants.tsv".format(runner.app_sd_on_task_conf("bids_output"))
 	try:
 		if not os.path.exists(new_part_tsv):
 			#if the file dont exist yet, create it
@@ -70,7 +71,7 @@ def add_subject_to_participants(runner):
 				for read_line in f.readlines():
 					try:
 						subj_name, rest_line  = read_line.split('\t', 1)
-						if(subj_name == runner.subj):
+						if(subj_name == long_subj):
 							found = True
 							#the line was already there, no changes
 							#TODO: maybe delete old line and copy again?
@@ -93,8 +94,8 @@ def copy_to_new_tree(runner, f):
 			- runner: task runner executing fix bids
 			- f: a filename
 	"""
-	in_bids = runner.get_global("orig_bids_root")
-	out_bids = runner.get_task_conf("bids_output")
+	in_bids = runner.app_sd_on_glob("orig_bids_root")
+	out_bids = runner.app_sd_on_task_conf("bids_output")
 	shutil.copy("{}/{}".format(in_bids, f), "{}/{}".format(out_bids, f))
 
 def copy_bids_tree(runner):
@@ -105,9 +106,10 @@ def copy_bids_tree(runner):
 	arguments
 			- runner: task runner executing fix bids
 	"""
-	in_bids = runner.get_global("orig_bids_root")
-	out_bids = runner.get_task_conf("bids_output")
-	dest_tree = "{}/{}".format(out_bids, runner.subj)
+	in_bids = runner.app_sd_on_glob("orig_bids_root")
+	out_bids = runner.app_sd_on_task_conf("bids_output")
+	long_subj = "sub-" + runner.subj
+	dest_tree = "{}/{}".format(out_bids, long_subj)
 	#delete old bids tree copy if exists
 	if not os.path.exists(out_bids):
 		os.makedirs(out_bids)
@@ -124,30 +126,22 @@ def copy_bids_tree(runner):
 	
 	#make new copy of subject bids tree
 	try:
-		copy_tree("{}/{}".format(in_bids, runner.subj), dest_tree)
-		log_print("copied " + "{}/{}".format(in_bids, runner.subj) + " to " + dest_tree)		
+		copy_tree("{}/{}".format(in_bids, long_subj), dest_tree)
+		log_print("copied " + "{}/{}".format(in_bids, long_subj) + " to " + dest_tree)		
 	except DistutilsFileError as e:
 		log_print("invalid subject " + runner.subj)
 		sys.exit()
 
-def update_bids_ignore(bids_root):
+def update_bids_ignore(runner):
 	"""
 		writes a new .bidsignore file in BIDS root. 
 		arguments:
 			-bids_root
 	"""
+	bids_root = runner.app_sd_on_task_conf("bids_output")
 	with open(bids_root + '/.bidsignore', 'w') as f:
 		f.write("#Add files to ignore here\n")
 	log_print("Wrote .bidsignore")
-
-def run_validator(runner):
-	"""
-		runs the bids validator program from docker container
-	"""
-	log_print("Running the bids validator docker script")
-	
-	runner.sh_run("{}/validate_bids_output.sh".format(runner.code_path))
-	log_print("check ./{}/bids-validator_report.txt".format(runner.get_global("deriv_folder")))
 
 def process_subject(runner):
 	"""
@@ -164,17 +158,14 @@ def process_subject(runner):
 	#copy the subject files to the destination tree
 	copy_bids_tree(runner)
 	#prepare scans.tsv file
-	bids_util.load_original_scans(runner.get_task_conf("bids_output"), runner.subj)
+	bids_util.load_original_scans(runner)
 	#execute fixes for each folder
 	#note: its ok for folders to be missing, fail gracefully. 
 	fix_anat(runner).execute()
-	# fix_dwi(runner).execute()
-	# fix_func(runner).execute()
-	# fix_fmap(runner).execute()
+	fix_dwi(runner).execute()
+	fix_func(runner).execute()
+	fix_fmap(runner).execute()
 	#save scans.tsv with changes
 	bids_util.save_new_scans(runner)
-	update_bids_ignore(runner.get_task_conf("bids_output"))
+	update_bids_ignore(runner)
 	
-if __name__ == "__main__":
-	print("run with pipeline.py -t fix_bids <subj> -c <conf.json>")
-

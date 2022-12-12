@@ -38,6 +38,7 @@ class spm12_module:
 		"""
 		s.runner = runner
 		s.subj = runner.subj
+		s.long_subj = "sub-" + s.subj
 		s.use_quit = runner.config["mask_remove_bg"]["use_quit"]
 		if (not s.use_quit):
 			s.src_dir = "pymp2rage"
@@ -48,12 +49,12 @@ class spm12_module:
 		s.output_pre = s.runner.get_deriv_folder("spm12", "anat")
 		
 		s.input_inv2_pre =  s.runner.get_deriv_folder("pymp2rage", "anat")
-		s.input_inv2 = s.input_inv2_pre +  "/{}_run-1_inv-2_part-mag_MP2RAGE.nii.gz".format(s.subj)
+		s.input_inv2 = s.input_inv2_pre +  "/{}_run-1_inv-2_part-mag_MP2RAGE.nii.gz".format(s.long_subj)
 		s.input_pre = s.runner.get_deriv_folder(s.src_dir, "anat")
-		s.input_t1w = s.input_pre + "/{}_run-1_desc-{}_UNIT1.nii.gz".format(s.subj, s.src_dir)	
+		s.input_t1w = s.input_pre + "/{}_run-1_desc-{}_UNIT1.nii.gz".format(s.long_subj, s.src_dir)	
 		
 		#TODO: UNIT1 or T1w?
-		s.unit1_no_bg = s.input_pre + "/{}_run-1_desc-{}noBackground_UNIT1.nii.gz".format(s.subj, s.src_dir)
+		s.unit1_no_bg = s.input_pre + "/{}_run-1_desc-{}noBackground_UNIT1.nii.gz".format(s.long_subj, s.src_dir)
 		
 	def make_bet_mask(s):
 		"""
@@ -64,8 +65,8 @@ class spm12_module:
 		log_print ("using BET for masking on " + s.src_dir + " intensity " + str(bet_intensity)) 
 		s.runner.create_derivatives_destination("bet", "anat")
 		bet_out_path = s.runner.get_deriv_folder("bet", "anat")
-		bet_output_file = bet_out_path + "/{}_run-1_desc-bet.nii.gz".format(s.subj)
-		s.mask_output_file = bet_out_path + "/{}_run-1_desc-bet_mask.nii.gz".format(s.subj)
+		bet_output_file = bet_out_path + "/{}_run-1_desc-bet.nii.gz".format(s.long_subj)
+		s.mask_output_file = bet_out_path + "/{}_run-1_desc-bet_mask.nii.gz".format(s.long_subj)
 		s.runner.sh_run("bet", s.input_inv2, bet_output_file, "-m -f {}".format(bet_intensity))
 
 	def make_spm12_mask(s):
@@ -73,7 +74,7 @@ class spm12_module:
 		execute spmmask create a brain mask. slower and less flexible than bet.  
 		"""
 		log_print("call_spmmask using " + s.src_dir)
-		s. mask_output_file = s.output_pre + "/{}_run-1_desc-{}_mask.nii.gz".format(s.subj, s.src_dir)
+		s. mask_output_file = s.output_pre + "/{}_run-1_desc-{}_mask.nii.gz".format(s.long_subj, s.src_dir)
 		s.runner.sh_run("call_spmmask -s {} ".format(s.spm12_path), s.input_t1w, s.mask_output_file, " y")
 		
 	def remove_background(s):
@@ -133,12 +134,13 @@ class quit_module():
 		#first half of each bids fileanme
 		s.runner = runner
 		s.subj = runner.subj
-		rawdata = runner.get_global("orig_bids_root")
-		s.part_input_filename = "{}/{}/{}/{}".format(rawdata, s.subj, "anat", s.subj)
+		s.long_subj = "sub-" + s.subj
+		rawdata = runner.app_sd_on_task_conf("bids_input")
+		s.part_input_filename = "{}/{}/{}/{}".format(rawdata, s.long_subj, "anat", s.long_subj)
 		s.deriv_quit_folder = runner.get_deriv_folder("quit", "anat")
 		
 		s.sc_pre_str = "anat/{}".format(s.subj)
-		s.quit_complex_input = s.deriv_quit_folder + "/{}_run-1_desc-inv1and2_MP2RAGE".format(s.subj)
+		s.quit_complex_input = s.deriv_quit_folder + "/{}_run-1_desc-inv1and2_MP2RAGE".format(s.long_subj)
 	
 	def create_QUIT_nifti(s):
 		"""
@@ -174,11 +176,8 @@ class quit_module():
 		qi_cmd = "qi mp2rage {} < {}".format(s.quit_complex_input, mp2rage_json_file, no_log=True)
 		s.runner.sh_run(qi_cmd)
 		
-		dest = s.deriv_quit_folder + "/{}_run-1_desc-quit_UNIT1.nii.gz".format(s.subj)
+		dest = s.deriv_quit_folder + "/{}_run-1_desc-quit_UNIT1.nii.gz".format(s.long_subj)
 		os.rename("MP2_UNI.nii.gz", dest)
-		dest = s.deriv_quit_folder + "/{}_run-1_desc-quit_T1map.nii.gz".format(s.subj)
+		dest = s.deriv_quit_folder + "/{}_run-1_desc-quit_T1map.nii.gz".format(s.long_subj)
 		os.rename("MP2_T1.nii.gz", dest)
 
-if __name__ == "__main__":
-	print("run with pipeline.py -c <conf.json> -t <mp2rage or mask_remove_bg> <subj>")
-	

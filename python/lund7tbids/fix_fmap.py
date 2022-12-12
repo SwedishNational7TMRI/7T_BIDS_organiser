@@ -14,15 +14,16 @@ class fix_fmap:
 			- runner: task runner executing fix bids
 		"""
 		s.name = "fmap"
-		s.bids_out = runner.get_task_conf("bids_output")
+		s.bids_out = runner.app_sd_on_task_conf("bids_output")
 		s.subj = runner.subj
-		#first half of each bids fileanme
-		s.root_folder = "{}/{}/{}/".format(s.bids_out, s.subj, s.name)
-		s.part_filename = s.root_folder + s.subj
+		s.long_subj = "sub-" + s.subj
+		#first half of each bids filename
+		s.root_folder = "{}/{}/{}/".format(s.bids_out, s.long_subj, s.name)
+		s.part_filename = s.root_folder + s.long_subj
 		s.epi_ap_ph_enc_dir = runner.get_task_conf("epi_ap_ph_enc_dir")
-		s.part_bold_name = "{}/{}".format("func", s.subj)
-		s.dicom_dir = "sourcedata/{}/*fmap*/".format(s.subj)
-		s.sc_pre_str = "fmap/{}".format(s.subj)
+		s.part_bold_name = "{}/{}".format("func", s.long_subj)
+		s.dicom_dir = runner.study_dir + "/sourcedata/{}/*fmap*/".format(s.long_subj)
+		s.sc_pre_str = "fmap/{}".format(s.long_subj)
 		
 		s.blacklist=[]
 	
@@ -102,7 +103,7 @@ class fix_fmap:
 		"""
 		bids_util.update_epi_json_files(s.root_folder, s.dicom_dir, s.epi_ap_ph_enc_dir)
 		s.rename_gre_fmap()
-		func_path = "{}/{}/{}/".format(s.bids_out, s.subj, "func")
+		func_path = "{}/{}/{}/".format(s.bids_out, s.long_subj, "func")
 		if(os.path.exists(func_path)):
 			s.add_missing_se_data()
 		else:

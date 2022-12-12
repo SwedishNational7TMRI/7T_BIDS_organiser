@@ -71,7 +71,7 @@ def update_json_shape(nii, input_json_file, output_json_file):
 bids_out = ""
 scans_lines = []
 subj = ""
-def load_original_scans(bids_out_arg, subj_arg):
+def load_original_scans(runner):
 	"""
 	Load the original list of files in scans.tsv to a buffer that can 
 	be modified before writing back to disk.
@@ -79,10 +79,10 @@ def load_original_scans(bids_out_arg, subj_arg):
 		- bids_out_arg: root of new bids tree
 		- subj_arg: subject ID string
 	"""
-	global scans_lines, bids_out, subj
-	bids_out = bids_out_arg
-	subj = subj_arg
-	scans = "{}/{}/{}_scans.tsv".format(bids_out, subj, subj)
+	bids_out = runner.app_sd_on_task_conf("bids_output")
+	global scans_lines
+	long_subj = "sub-" + runner.subj
+	scans = "{}/{}/{}_scans.tsv".format(bids_out, long_subj, long_subj)
 	f = open(scans, 'r')
 	scans_lines = f.readlines()
 	f.close()
@@ -95,8 +95,9 @@ def save_new_scans(runner):
 	arguments
 		-runner: parent task runner
 	"""
-	bids_out = runner.get_task_conf("bids_output")
-	scans = "{}/{}/{}_scans.tsv".format(bids_out, runner.subj, runner.subj)
+	bids_out = runner.app_sd_on_task_conf("bids_output")
+	long_subj = "sub-" + runner.subj
+	scans = "{}/{}/{}_scans.tsv".format(bids_out, long_subj, long_subj)
 	with open(scans, 'w') as f:
 		for line in scans_lines:
 			f.write(f"{line}")

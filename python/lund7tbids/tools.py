@@ -22,5 +22,4 @@ def run_import_dicoms(study_dir, subj_id, verbose=False):
     module_path = os.path.dirname(__file__)
     cmd = os.path.join(module_path, '..', '..', 'shell', '7Tbids_sort_dicoms.sh')
     cmd = f"bash {cmd} -i {subj_id} -q {study_dir}"
-    
     sp.call(cmd, shell=True)

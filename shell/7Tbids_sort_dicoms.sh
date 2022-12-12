@@ -3,7 +3,7 @@
 usage()
 {
   base=$(basename "$0")
-  echo "usage: $base dicomdir sourcedir sID [options]
+  echo "usage: $base sourcedir sID [options]
   Arrangement of DICOMs into organised folders in /sourcedata folder.
   Assuming that the dicomdir is stored as a subfolder in the study directory
   
@@ -48,6 +48,7 @@ done
 
 sourcedir=$studydir/sourcedata
 dicomdir=$studydir/dicomdir
+
 
 if [ -z $dicomdir ]; then
   echo "Need to specify dicomdir"

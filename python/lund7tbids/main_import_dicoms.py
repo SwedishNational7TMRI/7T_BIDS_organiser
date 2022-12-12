@@ -16,7 +16,6 @@ def main():
     study_dir = args.study_dir
     subj_id = args.id
     verbose = args.v
-
     run_import_dicoms(study_dir=study_dir,subj_id=subj_id,verbose=verbose)
 
 if __name__ == '__main__':

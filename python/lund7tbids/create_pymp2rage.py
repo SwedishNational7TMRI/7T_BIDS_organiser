@@ -18,6 +18,7 @@ class pymp2rage_module():
 		"""
 		s.runner = runner
 		s.subj = runner.subj
+		s.long_subj = "sub-" + s.subj
 		
 	def get_filename(s, inv, part):
 		"""
@@ -31,10 +32,10 @@ class pymp2rage_module():
 		
 		pymp2rage_pre = s.runner.get_deriv_folder("pymp2rage", "anat")
 		if(part == "UNIT1") or (part == "T1map"):
-			return pymp2rage_pre + "/{}_run-1_desc-pymp2rage_{}.nii.gz".format(s.subj, part) 
+			return pymp2rage_pre + "/{}_run-1_desc-pymp2rage_{}.nii.gz".format(s.long_subj, part) 
 		if(part == "complex"):
-			return pymp2rage_pre + "/{}_run-1_inv-{}_MP2RAGE.nii.gz".format(s.subj, str(inv)) 
-		return pymp2rage_pre + "/{}_run-1_inv-{}_part-{}_MP2RAGE.nii.gz".format(s.subj, str(inv), str(part)) 
+			return pymp2rage_pre + "/{}_run-1_inv-{}_MP2RAGE.nii.gz".format(s.long_subj, str(inv)) 
+		return pymp2rage_pre + "/{}_run-1_inv-{}_part-{}_MP2RAGE.nii.gz".format(s.long_subj, str(inv), str(part)) 
 
 	def create_pymp2rage_input_files(s):
 		"""
@@ -44,8 +45,8 @@ class pymp2rage_module():
 		input arguments:
 			subj: subject label
 		"""
-		rawdata = s.runner.get_global("orig_bids_root")
-		raw_anat_path_pre = "{}/{}/anat/{}".format(rawdata, s.subj, s.subj)
+		rawdata = s.runner.app_sd_on_task_conf("bids_input")
+		raw_anat_path_pre = "{}/{}/anat/{}".format(rawdata, s.long_subj, s.long_subj)
 		real_1and2 = raw_anat_path_pre +  "_run-1_inv-1and2_part-real_MP2RAGE.nii.gz"
 		imag_1and2 = raw_anat_path_pre +  "_run-1_inv-1and2_part-imag_MP2RAGE.nii.gz"
 		cplx_1 = s.get_filename(1, "complex")
@@ -90,6 +91,7 @@ class pymp2rage_module():
 	#TODO:   B1_fieldmap=<insert fieldmap file here>
 
 	#use default settings now to prevent crashing
+	#TODO: these should vary per study!
 		mp2_obj = pymp2rage.MP2RAGE(
 			MPRAGE_tr=5.0,
 			invtimesAB=[0.921, 2.771],
@@ -111,7 +113,3 @@ class pymp2rage_module():
 		log_print("saved " + s.get_filename(1, "UNIT1"))
 		nib.save(mp2_obj.t1map, s.get_filename(1, "T1map"))
 		log_print("saved " + s.get_filename(1, "T1map"))
-
-if __name__ == "__main__":
-	print("This file is no longer executable")
-	print("run with pipeline.py -t mp2rage <subj> -c <conf.json>")
