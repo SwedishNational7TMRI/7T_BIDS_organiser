@@ -12,10 +12,11 @@ class fix_func:
 			- runner: task runner executing fix bids
 		"""
 		s.name = "func"
-		s.bids_out = runner.get_task_conf("bids_output")
+		long_subj = "sub-" + runner.subj
+		s.bids_out = runner.app_sd_on_task_conf("bids_output")
 		s.ap_ph_enc_dir = runner.get_task_conf("epi_ap_ph_enc_dir")
-		s.dicom_dir = "sourcedata/{}/*fmri_8bars*/".format(runner.subj) 
-		s.root_folder = "{}/{}/{}/".format(s.bids_out, runner.subj, s.name)
+		s.dicom_dir = "sourcedata/{}/*fmri_8bars*/".format(long_subj) 
+		s.root_folder = "{}/{}/{}/".format(s.bids_out, long_subj, s.name)
 		#s.part_filename = s.root_folder + s.subj
 	
 	def fix_tsv_column_desc(s):
@@ -53,11 +54,12 @@ class fix_dwi:
 			- runner: task runner executing fix bids
 		"""
 		s.name = "dwi"
-		s.bids_out = runner.get_task_conf("bids_output")
+		long_subj = "sub-" + runner.subj
+		s.bids_out = runner.app_sd_on_task_conf("bids_output")
 		s.ap_ph_enc_dir = runner.get_task_conf("epi_ap_ph_enc_dir")
-		s.dicom_dir = "sourcedata/{}/*dmri*/".format(runner.subj) 
-		s.root_folder = "{}/{}/{}/".format(s.bids_out, runner.subj, s.name)
-		s.part_filename = s.root_folder + runner.subj
+		s.dicom_dir = "sourcedata/{}/*dmri*/".format(long_subj) 
+		s.root_folder = "{}/{}/{}/".format(s.bids_out, long_subj, s.name)
+		s.part_filename = s.root_folder + long_subj
 		s.blacklist=[s.part_filename + "*heudiconv*ADC*"]
 		
 	def execute(s):

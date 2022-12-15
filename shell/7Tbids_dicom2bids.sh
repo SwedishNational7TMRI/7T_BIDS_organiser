@@ -75,7 +75,7 @@ fi
 
 
 # Define Folders
-rawdatadir=$studydir/rawdata;
+rawdatadir=$studydir/temp_rawdata;
 sourcedatadir=$studydir/sourcedata;
 scriptname=`basename $0 .sh`
 logdir=$studydir/derivatives/logs/sub-${sID}

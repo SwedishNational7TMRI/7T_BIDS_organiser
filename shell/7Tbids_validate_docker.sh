@@ -17,7 +17,8 @@ userID=$(id -u):$(id -g)
 
 rawdatadir=$1
 scriptname=`basename $0 .sh`
-logdir=$studydir/derivatives/logs
+#hack: assume study dir is parent of bids data dir 
+logdir=$rawdatadir/../derivatives/logs
 logfile=$logdir/${scriptname}_validate.log
 docker run --name BIDSvalidation_container \
           --user $userID \
