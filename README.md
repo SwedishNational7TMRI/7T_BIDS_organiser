@@ -6,7 +6,7 @@ Bash and python scripts to convert DICOM data into [BIDS-organised](https://bids
 # People
 ...
 
-# Folder structure
+# Recommended folder structure
 - BIDS-organised NIfTIs in `/rawdata`
 - Original dicoms in `/dicomdir`
 Inside the `/dicomdir` your should have all your subjects, sessions (if applicable) and than the different folders for each sequence
@@ -38,46 +38,46 @@ The folder structure needs to be:
 ... Docker...
 
 # Changes to the original files
-- DcmDicomdir_to_DcmSourcedata.sh
--- deleted this file (renaming of DICOM files) due to possible disk space issues.
+**DcmDicomdir_to_DcmSourcedata.sh**
+- deleted this file (renaming of DICOM files) due to possible disk space issues.
 
-- DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh
--- added additional help with an example
--- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
--- parameter ""-f convertall" instead of the heuristic file - not really needed at this step
--- added some echos to show what the programme is doing
--- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
+**DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh**
+- added additional help with an example
+- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
+- parameter ""-f convertall" instead of the heuristic file - not really needed at this step
+- added some echos to show what the programme is doing
+- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
 
-- DcmSourcedata_to_NiftiRawdata.sh
--- added additional help with an example
--- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
--- apply the heuristic file from the /code folder
--- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
--- removed -t from the docker command to run multiple subjects
+**DcmSourcedata_to_NiftiRawdata.sh**
+- added additional help with an example
+- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
+- apply the heuristic file from the /code folder
+- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
+- removed -t from the docker command to run multiple subjects
 
 
 # Usage
-***1. Open Terminal and pull the repository into your study folder***
+**1. Open Terminal and pull the repository into your study folder**
 ```bash
 git clone https://github.com/SwedishNational7TMRI/7T_BIDS_organiser.git
 ```
 
-***2. Rename the downloaded folder into `/code`. Step into the `/code` folder and make all bash-files executeabel, e.g.:***
+**2. Rename the downloaded folder into `/code`. Step into the `/code` folder and make all bash-files executeabel, e.g.:**
 ```bash
 chmod a+x *.sh
 # ... or using admin rights:
 sudo chmod a+x *.sh
 ```
 
-***3. Run the DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh only for one subject, e.g.:***
+**3. Run the DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh only for one subject, e.g.:**
 ```bash
 ./DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh 105
 ```
 This runs heudiconv without conversion but it generates the hidden folder .heudiconv in `/rawdata` which includes a template for the heuristic file as well as the dicominfo file `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`.
 
-***4. Create your heuristic file (see example `example_heuristic.py`, according to your data and dicominfo file and save it into `/code/heuristic.py`***
+**4. Create your heuristic file (see example `example_heuristic.py`, according to your data and dicominfo file and save it into `/code/heuristic.py`**
 
-***5. Test the dicom2bids transformation on one subject:***
+**5. Test the dicom2bids transformation on one subject:**
 ```bash
 ./DcmSourcedata_to_NiftiRawdata.sh 105
 ```
@@ -86,9 +86,9 @@ This converts the dicoms in `/dicomdir` to BIDS-organised NIfTIs in `/rawdata` u
 - The script also makes a BIDS-validation at the generated
 - Docker images from heudiconv or BIDS-validator get automatically updated if needed
 
-***6. Check your data in `/rawdata`***
+**6. Check your data in `/rawdata`**
 
-***7. Transform all subjects***
+**7. Transform all subjects**
 a. create a list of the subjects. go into `/dicomdir` and run the following line to save all subject names in a txt-file, e.g.:
 ```bash
 for f in sub-*; do echo $f | cut -d"-" -f2; done > ../code/subjects.txt
@@ -106,13 +106,15 @@ for f in ../derivatives/logs/sub-1*/*ses-*.log; do grep -i "INFO: PROCESSING DON
 for f in ../derivatives/logs/sub-1*/*ses-*.log; do grep -i "error:" < $f; echo $f; done
 ```
 
-***optional: remove possible errors in the BIDS format***
+**optional: remove possible errors in the BIDS format**
 Test the BIDS format online: https://bids-standard.github.io/bids-validator/
 
 - Put files which do not fullfill BIDS and/or not needed now, into the hidden .bidsignore file manually. E.g.:
+```text
 sub-\*/ses-\*/anat/\*_MP2RAGE.\*
 sub-\*/ses-\*/anat/\*_UNIT1.\*
 sub-\*/ses-\*/dwi/\*_ADC.\*
+```
 
 - Delete the MP2rage sequences from the .tsv file in each session folder, e.g.:
 ```bash
@@ -139,7 +141,7 @@ for f in ../rawdata/sub-*/ses-*/sub-*scans.tsv; do sed -i "" -e "s/_epi2/_fieldm
    "B0FieldIdentifier": "b0map_fmap0"
 }
 ```
-- Run the following lines in modify_fmap.py to add the above mentioned information to all fieldmap json files:
+Example: Run the following lines in modify_fmap.py to add the above mentioned information to all fieldmap json files in a multisession dataset:
 ```python
 ##### add data to json file
 import json
@@ -165,10 +167,10 @@ for f in files:
         json.dump(json_data, data, indent=2)
 ```
 
-- Add the SliceTiming to the BOLD JSON FILES
+- Add the SliceTiming to the BOLD json files
 (script from Peter Mannfolk - will be added soon)
 
-- Add the correct Phase Encoding Direction to the BOLD JSON FILES
+- Add the correct Phase Encoding Direction to the BOLD json files
 ?
 
 
