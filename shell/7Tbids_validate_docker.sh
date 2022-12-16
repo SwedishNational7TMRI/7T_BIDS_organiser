@@ -3,11 +3,10 @@
 usage()
 {
   base=$(basename "$0")
-  echo "usage: $base sID study directory
+  echo "usage: $base bids_dir log_file
     Validate BIDS structure
     
     Options:
-    -d
     -h / -help / --help           Print usage.
   "
   exit;
@@ -16,10 +15,16 @@ usage()
 userID=$(id -u):$(id -g)
 
 rawdatadir=$1
+logfile=$2
 scriptname=`basename $0 .sh`
-#hack: assume study dir is parent of bids data dir 
-logdir=$rawdatadir/../derivatives/logs
-logfile=$logdir/${scriptname}_validate.log
+
+# check if logfile exists
+if [ -e $logfile ]; then
+  echo "Logfile $logfile exists. Exiting."
+  rm $logfile
+fi
+touch $logfile
+
 docker run --name BIDSvalidation_container \
           --user $userID \
           --rm \
@@ -27,3 +32,6 @@ docker run --name BIDSvalidation_container \
           bids/validator \
               /data \
           | tee $logfile
+
+echo "\n\nlogging finished  at" `date` >> $logfile
+echo "Validated the following folder: " $rawdatadir >> $logfile
