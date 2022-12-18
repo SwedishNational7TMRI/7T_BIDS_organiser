@@ -8,7 +8,7 @@ Bash and python scripts to convert DICOM data into [BIDS-organised](https://bids
 
 # Recommended folder structure
 - BIDS-organised NIfTIs in `/rawdata`
-- Original dicoms in `/dicomdir`
+- Original DICOMs in `/dicomdir`
 Inside the `/dicomdir` your should have all your subjects, sessions (if applicable) and than the different folders for each sequence
 
 The folder structure needs to be:
@@ -22,7 +22,7 @@ The folder structure needs to be:
         ├── MRIQC.sh      
       ├── rawdata # will be generated
       ├── derivatives # will be generated
-      ├── dicomdir # dicom files
+      ├── dicomdir # DICOM files
         ├── sub-001
           ├── session 1 (if applicable)
             ├── folder sequence
@@ -75,21 +75,22 @@ sudo chmod a+x *.sh
 ```
 This runs heudiconv without conversion but it generates the hidden folder .heudiconv in `/rawdata` which includes a template for the heuristic file as well as the dicominfo file `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`.
 
-**4. Create your heuristic file (see example `example_heuristic.py`, according to your data and dicominfo file and save it into `/code/heuristic.py`**
+**4. Create your heuristic file (see example `example_heuristic.py`, according to your data and dicominfo file and save it under `/code/heuristic.py`**
 
-**5. Test the dicom2bids transformation on one subject:**
+**5. Transform one subject from DICOM to BIDS to test your heuristic file using DcmSourcedata_to_NiftiRawdata.sh, e.g.:**
 ```bash
 ./DcmSourcedata_to_NiftiRawdata.sh 105
 ```
-This converts the dicoms in `/dicomdir` to BIDS-organised NIfTIs in `/rawdata` using the heudiconv routine.
+This converts the DICOMs in `/dicomdir` to BIDS-organised NIfTIs in `/rawdata` using the heudiconv routine.
 - [heudiconv](https://github.com/nipy/heudiconv) is run with using a Docker container using rules set in the python file `heuristic.py`
 - The script also makes a BIDS-validation at the generated
 - Docker images from heudiconv or BIDS-validator get automatically updated if needed
 
 **6. Check your data in `/rawdata`**
 
-**7. Transform all subjects**
-a. create a list of the subjects. go into `/dicomdir` and run the following line to save all subject names in a txt-file, e.g.:
+**7. When the conversion is correct, transform all subjects to BIDS**
+
+a. create a list of the subjects. Go into `/dicomdir` and run the following line to save all subject names in a txt-file saved in the code folder, e.g.:
 ```bash
 for f in sub-*; do echo $f | cut -d"-" -f2; done > ../code/subjects.txt
 ```
@@ -106,14 +107,14 @@ for f in ../derivatives/logs/sub-1*/*ses-*.log; do grep -i "INFO: PROCESSING DON
 for f in ../derivatives/logs/sub-1*/*ses-*.log; do grep -i "error:" < $f; echo $f; done
 ```
 
-**optional: remove possible errors in the BIDS format**
+**OPTIONAL: remove possible errors in the BIDS format**
 Test the BIDS format online: https://bids-standard.github.io/bids-validator/
 
 - Put files which do not fullfill BIDS and/or not needed now, into the hidden .bidsignore file manually. E.g.:
 ```text
-sub-\*/ses-\*/anat/\*_MP2RAGE.\*
-sub-\*/ses-\*/anat/\*_UNIT1.\*
-sub-\*/ses-\*/dwi/\*_ADC.\*
+sub-*/ses-*/anat/*_MP2RAGE.*
+sub-*/ses-*/anat/*_UNIT1.*
+sub-*/ses-*/dwi/*_ADC.*
 ```
 
 - Delete the MP2rage sequences from the .tsv file in each session folder, e.g.:
