@@ -57,6 +57,7 @@ After you have installed the python package you will have a set of tools availab
     - Both of these tools need a `heuristics` file. This is assumed to be stored in  `/code`.
     - Both of these tools can be called with the `--docker` option which runs heudiconv from the downloaded docker container.
 - `7Tbids_validate`: Used to validate your BIDS tree structure.
+- `7Tbids_remove`: Used to remove files after QC
 
 
 The following folder structure and conventions are assumed to be used
@@ -99,6 +100,12 @@ DICOMDIR=<my_dicom_dir>
 # The pipeline configuration file is also assumed to live under studydir/code. Explanation for this file below
 # The fix_bids command will create a rawdata directory that is bids-compliant from which all further analysis is performed
 7Tbids_fix_bids -v --study_dir=$STUDYDIR -c pipeline_conf.json --id=$SUB
+
+# At this point you want to do some QC on your data. Decide which scans to discard and remove with command below
+# This will remove the nii.gz+json files from rawdata and the entry from the .tsv file
+7Tbids_remove --study_dir=$STUDYDIR --id=$SUB \
+                --fname anat/sub-7T049S02_run-2_FLAIR.nii.gz \
+                -c pipeline_conf.json
 
 # Final step is to validate the rawdata directory
 # Here you pass in the directory you want to run the validation on

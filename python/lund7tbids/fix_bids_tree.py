@@ -160,7 +160,7 @@ def process_subject(runner):
 	#prepare scans.tsv file
 	bids_util.load_original_scans(runner)
 	#execute fixes for each folder
-	#note: its ok for folders to be missing, fail gracefully. 
+	#note: its ok for folders to be missing, fail gracefully
 	fix_anat(runner).execute()
 	fix_dwi(runner).execute()
 	fix_func(runner).execute()

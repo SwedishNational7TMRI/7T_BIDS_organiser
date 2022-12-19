@@ -334,33 +334,32 @@ class task_runner():
 			json_config = os.path.join(study_dir, "/pipeline_conf.json")
 		else:
 			json_config = json_config
-		
+	
+	
 		print("loading " + json_config)
 		input_json = open(json_config)
 		s.config = json.load(input_json)
 		s.config["global"]["version"] = PROGRAM_VERSION
 		input_json.close()
 		
-		# Add study_root path to relevant folders
-		print(s.config)
 		# Append study root to keys
 		#for k in ["orig_bids_root", "deriv_folder", "fix_bids"]:
 		#	s.config['global'][k] = os.path.join(study_root, s.config['global'][k])
 		#
 		#s.config['fix_bids']['bids_output'] = os.path.join(study_root, s.config['fix_bids']['bids_output'])
 		
-		if(not task_arg == None):
-			s.task_list = [task_arg[0]]
-		else:
-			s.task_list = s.config['task_list']
+		# if(not task_arg == None):
+		# 	s.task_list = [task_arg[0]]
+		# else:
+		# 	s.task_list = s.config['task_list']
 
-		#add all the current available tasks
-		s.avail_tasks = {}
-		s.avail_tasks["fix_bids"] = fix_bids_task
-		s.avail_tasks["mp2rage"] = mp2rage_task
-		s.avail_tasks['mask_remove_bg'] = mask_background_task
-		s.avail_tasks["cat12"] = cat12_task
-		s.avail_tasks["freesurfer"] = freesurfer_task
+		# #add all the current available tasks
+		# s.avail_tasks = {}
+		# s.avail_tasks["fix_bids"] = fix_bids_task
+		# s.avail_tasks["mp2rage"] = mp2rage_task
+		# s.avail_tasks['mask_remove_bg'] = mask_background_task
+		# s.avail_tasks["cat12"] = cat12_task
+		# s.avail_tasks["freesurfer"] = freesurfer_task
 
 	def run_subject(s, subj):
 		"""
