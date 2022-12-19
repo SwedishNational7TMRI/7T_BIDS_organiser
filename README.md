@@ -111,8 +111,14 @@ DICOMDIR=<my_dicom_dir>
 # Here you pass in the directory you want to run the validation on
 7Tbids_validate -v ${STUDYDIR}/rawdata
 
+
+# To process MP2RAGE run
+mp2rage_runnum=1
+7Tbids_mp2rage --study_dir=$STUDYDIR --id=$SUB -c pipeline_conf_axel.json --run $mp2rage_runnum
+
 # If you don't pass a logfile name to the validate command, it will make a logfile in the derivaties/log directory
 # with a timestamp. 
+
 ```
 
 ## pipeline_conf.json
@@ -128,8 +134,17 @@ Explanation of `pipeline_conf.json`. You need to remove the comments (`<-`) befo
     "freesurfer_license": "$FREESURFER_HOME/license.txt"
 },
 "fix_bids": {"bids_output": "rawdata", "epi_ap_ph_enc_dir": "j-"}, <- Specific options for fix bids
-"mp2rage": {"bids_input": "rawdata", "out_folder": "spm12",  <- Specific options for mp2rage
-            "spm12_ver": "2022"},
+"mp2rage": {"bids_input": "rawdata", 
+				"out_folder": "spm12", 
+				"spm12_ver": "2022",
+				"params": {
+				"MPRAGE_tr":5,
+				"invtimesAB":[0.90, 2.750],
+				"flipangleABdegree":[5, 3],
+				"nZslices":[257],
+				"FLASH_tr":[0.0068, 0.0068],
+				"B0":7.0}
+			},
 "mask_remove_bg": {"use_bet": true, "bet_intensity": 0.25, 
                     "use_quit": false},
 "cat12": {"out_folder": "cat12", "cat12_ver": "r1450"},

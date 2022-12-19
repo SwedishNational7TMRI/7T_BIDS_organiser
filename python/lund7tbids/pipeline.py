@@ -44,7 +44,7 @@ def fix_bids_task(runner):
 	#validator is no longer ran!
 	#fix_bids_tree.run_validator(runner)
 
-def mp2rage_task(runner):
+def mp2rage_task(runner, run_num=1):
 	"""
 	performs two small tasks computing input files and creating output 
 	images with QUIT an pymp2rage.  
@@ -60,7 +60,7 @@ def mp2rage_task(runner):
 	# quit_mod.gen_T1_map_mp2rage()
 	
 	#run pymp2rage processing
-	pymp2_mod = pymp2rage_module(runner)
+	pymp2_mod = pymp2rage_module(runner, run_num)
 	runner.create_derivatives_destination("pymp2rage", "anat")
 	pymp2_mod.create_pymp2rage_input_files()
 	pymp2_mod.make_pymp2rage()
@@ -348,20 +348,18 @@ class task_runner():
 		#
 		#s.config['fix_bids']['bids_output'] = os.path.join(study_root, s.config['fix_bids']['bids_output'])
 		
-		# if(not task_arg == None):
-		# 	s.task_list = [task_arg[0]]
-		# else:
-		# 	s.task_list = s.config['task_list']
+		if(not task_arg == None):
+			s.task_list = [task_arg[0]]
+		else:
+			s.task_list = s.config['task_list']
 
 		# #add all the current available tasks
-		# s.avail_tasks = {}
-		# s.avail_tasks["fix_bids"] = fix_bids_task
-		# s.avail_tasks["mp2rage"] = mp2rage_task
-		# s.avail_tasks['mask_remove_bg'] = mask_background_task
-		# s.avail_tasks["cat12"] = cat12_task
-		# s.avail_tasks["freesurfer"] = freesurfer_task
+		s.avail_tasks = {}
+		s.avail_tasks["fix_bids"] = fix_bids_task
+		s.avail_tasks["mp2rage"] = mp2rage_task
+		s.avail_tasks["freesurfer"] = freesurfer_task
 
-	def run_subject(s, subj):
+	def run_subject(s, subj, **kwargs):
 		"""
 		execute the current task/tasks for a given subject
 		arguments:
@@ -376,9 +374,9 @@ class task_runner():
 			return
 		s.subj_log_dir = "{}/logs/sub-{}".format(s.app_sd_on_glob("deriv_folder"), s.subj)
 		for task in s.task_list:
-			s.execute_task(task)
+			s.execute_task(task, **kwargs)
 
-	def execute_task(s, task_name):
+	def execute_task(s, task_name, **kwargs):
 		"""
 		execute and log a task for the current subject. 
 		requires task name to already exist in the list of tasks 
@@ -401,7 +399,8 @@ class task_runner():
 		s.cur_task = task_name
 		task_log = log_item(s)
 		s.task_config = s.config[task_name]
-		task_function(s)
+		task_function(s, **kwargs)
+
 		#except Exception as e:
 		#	print("Error: Task error: " + str(e))
 		#	task_log.write_error(str(e))

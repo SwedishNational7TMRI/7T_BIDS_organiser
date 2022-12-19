@@ -96,7 +96,6 @@ def MPRAGEfunc_varyingTR(MPRAGE_tr, inversiontimes, nZslices,
                / (1 - (cosalfaE1[m]))
 
         signal[m] = sinalfa[m]*temp
-
     return signal        
 
 
@@ -142,10 +141,8 @@ def MP2RAGE_lookuptable(MPRAGE_tr, invtimesAB, flipangleABdegree, nZslices, FLAS
            (invtimesb <= (MPRAGE_tr-nZ_aft*FLASH_tr[1]))):
             Signal[j, :] = MPRAGEfunc_varyingTR(MPRAGE_tr, invtimesAB, nZslices2, FLASH_tr, [flipanglea, flipangleb], sequence, T1, nimages, B0, M0, inversion_efficiency)
 
-
         else:
             Signal[j,:] = 0
-
 
     Intensity = np.squeeze(np.real(Signal[..., 0] * np.conj(Signal[..., 1])) / (np.abs(Signal[... ,0])**2 + np.abs(Signal[...,1])**2))
 

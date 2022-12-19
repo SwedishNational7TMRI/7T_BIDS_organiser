@@ -3,6 +3,7 @@ from .lib.pymp2rage import pymp2rage
 import nibabel as nib
 from . import bids_util
 from .bids_util import log_print
+import os
 
 class pymp2rage_module():
 	"""
@@ -10,7 +11,7 @@ class pymp2rage_module():
 	provided context by a runner
 	"""
 	
-	def __init__(s, runner):
+	def __init__(s, runner, run_num=1):
 		"""
 		not much to setup here
 		arguments:
@@ -19,6 +20,7 @@ class pymp2rage_module():
 		s.runner = runner
 		s.subj = runner.subj
 		s.long_subj = "sub-" + s.subj
+		s.run_num = run_num
 		
 	def get_filename(s, inv, part):
 		"""
@@ -32,10 +34,10 @@ class pymp2rage_module():
 		
 		pymp2rage_pre = s.runner.get_deriv_folder("pymp2rage", "anat")
 		if(part == "UNIT1") or (part == "T1map"):
-			return pymp2rage_pre + "/{}_run-1_desc-pymp2rage_{}.nii.gz".format(s.long_subj, part) 
+			return pymp2rage_pre + "/{}_run-{}_desc-pymp2rage_{}.nii.gz".format(s.long_subj, s.run_num, part) 
 		if(part == "complex"):
-			return pymp2rage_pre + "/{}_run-1_inv-{}_MP2RAGE.nii.gz".format(s.long_subj, str(inv)) 
-		return pymp2rage_pre + "/{}_run-1_inv-{}_part-{}_MP2RAGE.nii.gz".format(s.long_subj, str(inv), str(part)) 
+			return pymp2rage_pre + "/{}_run-{}_inv-{}_MP2RAGE.nii.gz".format(s.long_subj, s.run_num, str(inv)) 
+		return pymp2rage_pre + "/{}_run-{}_inv-{}_part-{}_MP2RAGE.nii.gz".format(s.long_subj, s.run_num, str(inv), str(part)) 
 
 	def create_pymp2rage_input_files(s):
 		"""
@@ -46,34 +48,26 @@ class pymp2rage_module():
 			subj: subject label
 		"""
 		rawdata = s.runner.app_sd_on_task_conf("bids_input")
-		raw_anat_path_pre = "{}/{}/anat/{}".format(rawdata, s.long_subj, s.long_subj)
-		real_1and2 = raw_anat_path_pre +  "_run-1_inv-1and2_part-real_MP2RAGE.nii.gz"
-		imag_1and2 = raw_anat_path_pre +  "_run-1_inv-1and2_part-imag_MP2RAGE.nii.gz"
-		cplx_1 = s.get_filename(1, "complex")
-		cplx_2 = s.get_filename(2, "complex")
+		raw_anat_path_pre = f"{rawdata}/{s.long_subj}/anat/{s.long_subj}"
 
-		log_print("making split complex niftis")	
-		s.runner.sh_run("fslcomplex -complex",  real_1and2 + " " + imag_1and2, cplx_1, " 0 0", no_log=True)
-		s.runner.sh_run("fslcomplex -complex",  real_1and2 + " " + imag_1and2, cplx_2, " 1 1", no_log=True)
+		# Need to do the processing of both inversion times
+		for inv in (1, 2):
+			cplx = s.get_filename(inv, "complex")
+			# if file cplx does not exist
+			if not os.path.isfile(cplx):
+				real = raw_anat_path_pre +  f"_run-{s.run_num}_inv-{inv}_part-real_MP2RAGE.nii.gz"
+				imag = raw_anat_path_pre +  f"_run-{s.run_num}_inv-{inv}_part-imag_MP2RAGE.nii.gz"
+				s.runner.sh_run(f"fslcomplex -complex {real} {imag} {cplx} {inv-1} {inv-1}", no_log=True)
 
-		inv2_mag = s.get_filename(2, "mag")
-		inv2_phase = s.get_filename(2, "phase")
+			mag = s.get_filename(inv, "mag")
+			phase = s.get_filename(inv, "phase")
+			if not os.path.isfile(mag) or os.path.isfile(phase):
+				s.runner.sh_run(f"fslcomplex -realpolar {cplx} {mag} {phase}", no_log=True)
 
-		log_print("getting magnitude and phase for inv 1")
-		inv1_mag = s.get_filename(1, "mag")
-		inv1_phase = s.get_filename(1, "phase")
-		s.runner.sh_run("fslcomplex -realpolar ", cplx_1, inv1_mag + " " + inv1_phase, no_log=True)
-		
-		log_print("getting magnitude and phase for inv 2")
-		inv2_mag = s.get_filename(2, "mag")
-		inv2_phase = s.get_filename(2, "phase")
-		s.runner.sh_run("fslcomplex -realpolar ", cplx_2, inv2_mag + " " + inv2_phase, no_log=True)
-
-		log_print("copying geometry to output files")
-		for f in (inv1_mag, inv1_phase):
-			s.runner.sh_run("fslcpgeom", cplx_1, f, no_log=True)
-		for f in (inv2_mag, inv2_phase):
-			s.runner.sh_run("fslcpgeom", cplx_2, f, no_log=True)
+			log_print("copying geometry to output files")
+			for f in (mag, phase):
+				s.runner.sh_run("fslcpgeom", cplx, f, no_log=True)
+			
 
 	def make_pymp2rage(s):
 		"""
@@ -89,20 +83,15 @@ class pymp2rage_module():
 		inv2_mag = s.get_filename(2, "mag")
 		inv2_phase = s.get_filename(2, "phase")
 	#TODO:   B1_fieldmap=<insert fieldmap file here>
-
-	#use default settings now to prevent crashing
-	#TODO: these should vary per study!
+		
 		mp2_obj = pymp2rage.MP2RAGE(
-			MPRAGE_tr=5.0,
-			invtimesAB=[0.921, 2.771],
-			flipangleABdegree=[8, 6],
-			nZslices=257,
-			FLASH_tr=[0.0068, 0.0068], B0=7.0, 
+			**s.runner.config['mp2rage']['params'],
 			inv1=inv1_mag,
 			inv1ph=inv1_phase,
 			inv2=inv2_mag,
 			inv2ph=inv2_phase)
 		
+
 		#The object has these Attributes:
 		#    t1map (Nifti1Image): Quantitative T1 map
 		#    t1w_uni (Nifti1Image): Bias-field corrected T1-weighted image

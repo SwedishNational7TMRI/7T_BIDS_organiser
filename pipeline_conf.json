@@ -1,6 +1,4 @@
 {
-	"subj_list": ["7T049S09"],
-	"task_list": ["fix_bids", "mp2rage", "mask_remove_bg"],
 	"global": {
 		"config_name": "QUIT, no FS",	
 		"orig_bids_root": "temp_rawdata",
@@ -11,8 +9,17 @@
 	},
 	"dicom_convert": {}, 
 	"fix_bids": {"bids_output": "fixed_rawdata", "epi_ap_ph_enc_dir": "j-"},
-	"mp2rage": {"bids_input": "fixed_rawdata", "out_folder": "spm12", 
-				"spm12_ver": "2022"},
+	"mp2rage": {"bids_input": "rawdata", 
+				"out_folder": "spm12", 
+				"spm12_ver": "2022",
+				"params": {
+				"MPRAGE_tr":5,
+				"invtimesAB":[0.90, 2.750],
+				"flipangleABdegree":[5, 3],
+				"nZslices":[257],
+				"FLASH_tr":[0.0068, 0.0068],
+				"B0":7.0}
+			},
 	"mask_remove_bg": {"use_bet": true, "bet_intensity": 0.25, 
 						"use_quit": false},
 	"cat12": {"out_folder": "cat12", "cat12_ver": "r1450"},

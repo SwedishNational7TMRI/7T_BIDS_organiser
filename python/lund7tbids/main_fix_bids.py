@@ -18,7 +18,6 @@ def parse_inputs():
     return args
 
 def main():
-    
 	args = parse_inputs()
 	task = ['fix_bids']
 	runner = task_runner(args.study_dir, json_config=args.config, task_arg=task, dummy=args.dummy, verbose=args.verbose)

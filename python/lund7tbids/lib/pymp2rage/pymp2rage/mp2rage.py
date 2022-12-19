@@ -184,7 +184,6 @@ class MP2RAGE(object):
         T1Vector = np.append(T1Vector, T1Vector[-1] + (T1Vector[-1]-T1Vector[-2]))
         Intensity = np.append(Intensity, -0.5)
 
-
         T1Vector = T1Vector[np.argsort(Intensity)]
         Intensity = np.sort(Intensity)
 

@@ -1,14 +1,14 @@
 import argparse
 import subprocess as sp
-from .tools import run_import_dicoms
+from .pipeline import task_runner
 
 def parse_inputs():
     parser = argparse.ArgumentParser(description='Process MP2RAGE')
     parser.add_argument('--study_dir', help='Study directory', type=str, required=True)
     parser.add_argument('--id', help='Subject ID', type=str, required=True)
-    parser.add_argument('--params', help='Sequence parameters (.json file)', type=str, required=True)
-    parser.add_argument('--cat12', help='Run cat 12. Includes background removal', action='store_true')
     parser.add_argument('--b1', help='B1-map. Needs to be registered', action='store_true')
+    parser.add_argument('--run', help='Which run to process', type=int, default=1)
+    parser.add_argument('-c', '--config', default=None, type=str)
     parser.add_argument('-v', help='Verbose output')
     args = parser.parse_args()
 
@@ -16,11 +16,11 @@ def parse_inputs():
 
 def main():
     args = parse_inputs()
-    study_dir = args.study_dir
-    subj_id = args.id
-    run_cat12 = args.cat12
-    verbose = args.v
 
+    args = parse_inputs()
+    task = ['mp2rage']
+    runner = task_runner(args.study_dir, task_arg=task, json_config=args.config, verbose=args.v)
+    runner.run_subject(args.id, run_num=args.run)
     
 
 if __name__ == '__main__':

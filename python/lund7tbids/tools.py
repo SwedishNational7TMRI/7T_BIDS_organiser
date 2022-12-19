@@ -27,9 +27,8 @@ def run_import_dicoms(study_dir, subj_id, verbose=False):
     sp.call(cmd, shell=True)
 
 def bids_remove_file(study_dir, subj_id, filename, config, verbose=False):
-    runner = task_runner(study_dir, json_config=config, verbose=verbose)
+    runner = task_runner(study_dir, json_config=config, verbose=verbose, task_arg=['fix_bids'])
     runner.subj = subj_id
-    runner.task_list = ['fix_bids']
     runner.cur_task = 'fix_bids'
 
     # Find filename ending
