@@ -18,10 +18,14 @@ def main():
     args = parse_inputs()
 
     args = parse_inputs()
-    task = ['mp2rage']
-    runner = task_runner(args.study_dir, task_arg=task, json_config=args.config, verbose=args.v)
+    runner = task_runner(args.study_dir, task_arg=['mp2rage'], json_config=args.config, verbose=args.v)
     runner.run_subject(args.id, run_num=args.run)
     
+    runner.task_list = ['mask_remove_bg']
+    runner.run_subject(args.id, run_num=args.run)
+
+    runner.task_list = ['cat12']
+    runner.run_subject(args.id, run_num=args.run)
 
 if __name__ == '__main__':
     main()

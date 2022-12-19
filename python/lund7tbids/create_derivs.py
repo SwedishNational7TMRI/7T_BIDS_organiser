@@ -111,13 +111,10 @@ class spm12_module:
 		log_print("running cat12 on " + s.src_dir + " data" )
 		input_pre = s.runner.get_deriv_folder("spm12", "anat")
 		output_cat_dir = s.runner.get_deriv_folder("cat12", "anat")
-		tmp_input = ".input_no_bg.nii.gz"
-		#use cp not rename
-		shutil.copy(s.unit1_no_bg, tmp_input)
 		cat12_path = os.path.join(LUND7T_MODULEPATH, 'lib', 'linescanning', 'bin')
 		my_env = os.environ.copy()
 		my_env["PATH"] = my_env["PATH"] + ":" + cat12_path
-		s.runner.sh_run("bash call_cat12 -s {} ".format(s.spm12_path), tmp_input, output_cat_dir, env=my_env)
+		s.runner.sh_run("bash call_cat12 -s {} ".format(s.spm12_path), s.unit1_no_bg, output_cat_dir, env=my_env)
 		os.remove(tmp_input)
 		
 class quit_module():	

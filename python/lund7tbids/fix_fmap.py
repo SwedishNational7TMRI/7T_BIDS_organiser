@@ -84,14 +84,14 @@ class fix_fmap:
 		
 		for idx in [1, 2]:
 			if(idx == 1):
-				input_file = base_gre_filename + "epi1";
-				output_file = out_fmap_filename + "fieldmap";
+				input_file = base_gre_filename + "epi1"
+				output_file = out_fmap_filename + "fieldmap"
 			elif(idx == 2): 
-				input_file = base_gre_filename + "epi2";
-				output_file = out_fmap_filename + "magnitude";
+				input_file = base_gre_filename + "epi2"
+				output_file = out_fmap_filename + "magnitude"
 			else:
 				print("wrong index")
-				sys.quit();
+				sys.quit()
 			for ending in [".json", ".nii.gz"]:
 				os.rename(input_file + ending, output_file + ending)
 				log_print("renamed " + output_file + ending)

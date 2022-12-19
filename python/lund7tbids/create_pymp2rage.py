@@ -55,8 +55,8 @@ class pymp2rage_module():
 			cplx = s.get_filename(inv, "complex")
 			# if file cplx does not exist
 			if not os.path.isfile(cplx):
-				real = raw_anat_path_pre +  f"_run-{s.run_num}_inv-{inv}_part-real_MP2RAGE.nii.gz"
-				imag = raw_anat_path_pre +  f"_run-{s.run_num}_inv-{inv}_part-imag_MP2RAGE.nii.gz"
+				real = raw_anat_path_pre + f"_run-{s.run_num}_inv-{inv}_part-real_MP2RAGE.nii.gz"
+				imag = raw_anat_path_pre + f"_run-{s.run_num}_inv-{inv}_part-imag_MP2RAGE.nii.gz"
 				s.runner.sh_run(f"fslcomplex -complex {real} {imag} {cplx} {inv-1} {inv-1}", no_log=True)
 
 			mag = s.get_filename(inv, "mag")

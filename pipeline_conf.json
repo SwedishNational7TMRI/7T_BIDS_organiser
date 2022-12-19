@@ -1,14 +1,14 @@
 {
 	"global": {
-		"config_name": "QUIT, no FS",	
+		"config_name": "test",	
 		"orig_bids_root": "temp_rawdata",
 		"deriv_folder": "derivatives",
 		"fix_bids": "rawdata",
 		"spm12_path": "/Users/emil/Code/spm12",
 		"freesurfer_license": "$FREESURFER_HOME/license.txt"
 	},
-	"dicom_convert": {}, 
-	"fix_bids": {"bids_output": "fixed_rawdata", "epi_ap_ph_enc_dir": "j-"},
+	"fix_bids": {"bids_output": "rawdata", 
+				"epi_ap_ph_enc_dir": "j-"},
 	"mp2rage": {"bids_input": "rawdata", 
 				"out_folder": "spm12", 
 				"spm12_ver": "2022",
@@ -20,7 +20,8 @@
 				"FLASH_tr":[0.0068, 0.0068],
 				"B0":7.0}
 			},
-	"mask_remove_bg": {"use_bet": true, "bet_intensity": 0.25, 
+	"mask_remove_bg": {"use_bet": true, 
+						"bet_intensity": 0.25, 
 						"use_quit": false},
 	"cat12": {"out_folder": "cat12", "cat12_ver": "r1450"},
 	"freesurfer": {"out_folder": "freesurfer", "fs-version": 0.1, "threads": 10}

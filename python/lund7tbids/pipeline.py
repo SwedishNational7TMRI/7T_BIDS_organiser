@@ -65,7 +65,7 @@ def mp2rage_task(runner, run_num=1):
 	pymp2_mod.create_pymp2rage_input_files()
 	pymp2_mod.make_pymp2rage()
 
-def mask_background_task(runner):
+def mask_background_task(runner, run_num=1):
 	"""
 	given a specific configuration outputs a masked brain image, using 
 	bet or spmmask, and quit or pymp2rage. 
@@ -82,7 +82,7 @@ def mask_background_task(runner):
 		spm_mod.make_spm12_mask()
 	spm_mod.remove_background()
 	
-def cat12_task(runner):
+def cat12_task(runner, run_num=1):
 	"""
 	executes cat12 processing to get a noise reduced t1w image from a 
 	masked t1w image. 
@@ -358,6 +358,8 @@ class task_runner():
 		s.avail_tasks["fix_bids"] = fix_bids_task
 		s.avail_tasks["mp2rage"] = mp2rage_task
 		s.avail_tasks["freesurfer"] = freesurfer_task
+		s.avail_tasks['mask_remove_bg'] = mask_background_task
+		s.avail_tasks["cat12"] = cat12_task
 
 	def run_subject(s, subj, **kwargs):
 		"""
@@ -386,6 +388,7 @@ class task_runner():
 			task_name: a task that will be logged, must have a corresponding 
 			task function in the list of tasks.  
 		"""
+		
 		try:
 			task_function = s.avail_tasks[task_name] 
 		except: 

@@ -32,21 +32,22 @@ This is an example of what the subject structure looks like for a single session
             │   └── sub-S01_scans.tsv
             └── task-rest_bold.json
 ```
+## Dependencies
+- Python 3.8. Suggest using a anaconda environment (here called `py38`)
+```
+conda create -n py38 python=3.8
+```
+- SPM
+- Cat12. User version r1450 from this [download link](http://141.35.69.218/cat12/cat12_r1450.zip). See notes about SPM and CAT12 on mac below.
+- To download the necessary docker containers execute
+```sh
+shell download_docker.sh
+```
 
 ## Installation
 This software is best used as a python package which is installed using `pip`. Python 3.8 or higher is required. Recommended that you do this in a an isolated conda or virtual environment. To install, navigate to the main directory and execute
 ```sh
 python -m pip install -e .
-```
-
-To install python 3.8 in conda use:
-```
-conda create -n py38 python=3.8
-```
-
-To download the necessary docker containers execute
-```sh
-shell download_docker.sh
 ```
 
 After you have installed the python package you will have a set of tools available:
@@ -116,9 +117,7 @@ DICOMDIR=<my_dicom_dir>
 mp2rage_runnum=1
 7Tbids_mp2rage --study_dir=$STUDYDIR --id=$SUB -c pipeline_conf_axel.json --run $mp2rage_runnum
 
-# If you don't pass a logfile name to the validate command, it will make a logfile in the derivaties/log directory
-# with a timestamp. 
-
+# From this command you want to use the file with the naming mi<subject>_run-<run>_desc-pymp2ragenoBackground_UNIT1.nii
 ```
 
 ## pipeline_conf.json
@@ -162,7 +161,22 @@ Explanation of `pipeline_conf.json`. You need to remove the comments (`<-`) befo
 Most of these tools runs well on a mac, except some of the scripts in the `linescanning` repo. These uses the `readlink` command which works differently on linux and mac. You can install the linux type `readlink` tool from `brew` and then symlink it to fix it (although I have not been able to do this successfully yet (Emil Ljungberg))
 
 Install readlink with brew
-1. Install the coreutils package: `brew install coreutils`
-2. Create an Alias or Symlink
-    - You can place your alias in ~/.bashrc, ~/.bash_profile, or wherever you are used to keeping your bash aliases. I personally keep mine in ~/.bashrc
-    - alias readlink=greadlink
+1. Install the coreutils package: `brew install coreutils`. This will install a tool called `greadlink` which is equivalent to the UNIX command `readlink`
+2. Create a symlink to `greadlink` using
+```
+sudo ln -s /opt/homebrew/bin/greadlink /opt/homebrew/bin/readlink
+```
+3. If you want to revert back to the MacOS version of readlink just remove the symlink with
+```
+sudo rm /opt/homebrew/bin/readlink
+```
+
+## spm
+Your mac will put all your compiled mex files in quarantine, to avoid this you can try to prevent it with:
+```
+sudo xattr -r -d com.apple.quarantine CAT12_PATH
+sudo xattr -r -d com.apple.quarantine SPM_PATH
+sudo find CAT12_PATH -name \*.mexmaci64 -exec spctl --add {} \;
+sudo find SPM_PATH -name \*.mexmaci64 -exec spctl --add {} \;
+```
+For more info see [this page](https://www.fieldtriptoolbox.org/faq/mexmaci64_cannot_be_opened_because_the_developer_cannot_be_verified/)
