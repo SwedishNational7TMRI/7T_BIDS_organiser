@@ -30,13 +30,16 @@ class fix_anat:
 		#first half of each bids fileanme
 		s.root_folder = "{}/{}/{}/".format(s.bids_out, long_subj, s.name)
 		s.part_filename = s.root_folder + long_subj
+
+		s.nruns = bids_util.count_scans('_inv-1and2_MP2RAGE')
+		print("Number of MP2RAGE runs: " + str(s.nruns))
 		
 		s.deriv_quit_folder = runner.get_deriv_folder("quit", "anat")
 		
 		#"./derivatives/quit/{}/anat".format(subj)
 		s.sc_pre_str = "anat/{}".format(long_subj)
 		
-		s.quit_complex_input = s.deriv_quit_folder + "/{}_run-1_inv_1and2_MP2RAGE".format(long_subj)
+		s.quit_complex_input = s.deriv_quit_folder + "/{}_run-%d_inv_1and2_MP2RAGE".format(long_subj)
 		#these are the files to be deleted
 		s.blacklist=[s.part_filename + "*heudiconv*", 
 					s.part_filename + "*inv-1and2*"]
@@ -64,7 +67,7 @@ class fix_anat:
 		json.dump(json_dict, out_file)
 		out_file.close()
 
-	def reshape_UNIT1_dims(s):
+	def reshape_UNIT1_dims(s, run):
 		"""
 		function to change the shape of the UNIT1 mp2rage file. 
 		a new nifty file will be written to disk that has the format
@@ -72,7 +75,7 @@ class fix_anat:
 		"""
 		
 		log_print("fixing the shape of UNIT1 mp2rage file")
-		input_nii_file = s.part_filename + "_acq-mp2rage_run-1_UNIT1.nii.gz"
+		input_nii_file = s.part_filename + f"_acq-mp2rage_run-{run}_UNIT1.nii.gz"
 		temp_file = ".UNIT1.nii.gz"
 		os.rename(input_nii_file, temp_file)
 		nii = nib.load(temp_file)
@@ -81,7 +84,7 @@ class fix_anat:
 		new_data = np.zeros((nii_data.shape[0], nii_data.shape[1], nii_data.shape[3]))
 		new_data = nii_data[:,:,0,:]
 		nii_updated = nib.Nifti1Image(new_data, nii.affine)
-		json_file = s.part_filename + "_acq-mp2rage_run-1_UNIT1.json"
+		json_file = s.part_filename + f"_acq-mp2rage_run-{run}_UNIT1.json"
 		json_file_temp = json_file + ".tmp"
 		bids_util.update_json_shape(nii_updated, json_file, json_file_temp)
 		u_xyz, u_t = nii.header.get_xyzt_units()
@@ -101,13 +104,13 @@ class fix_anat:
 		nii_inv.header.set_xyzt_units(u_xyz, u_t)
 		return nii_inv
 
-	def split_combined_niftis(s):
+	def split_combined_niftis(s,run):
 		"""
 		create new nifti files based on the run-1_inv-1and2 files
 		for each inversion time. 
 		"""
 		#lets assume we only have one run for now
-		run = 1
+		
 		for part in ['real', 'imag']:
 			i_prefix_file = s.part_filename + "_run-{}_inv-1and2_part-{}_MP2RAGE".format(run, part)
 			input_nii_file = i_prefix_file + ".nii.gz" 
@@ -126,7 +129,7 @@ class fix_anat:
 				#write new nii file
 				nib.save(nii_sep, output_nii_file)
 
-	def gen_T1_map_mp2rage(s):
+	def gen_T1_map_mp2rage(s, run):
 		"""
 			function to call the QUIT library to generate a better mp2RAGE
 			image. 
@@ -137,27 +140,29 @@ class fix_anat:
 		"""
 		code_path = os.path.dirname(os.path.relpath(__file__))
 		mp2rage_json_file = code_path + "/mp2rage_parameters.json"
-		qi_cmd = "qi mp2rage {} < {}".format(s.quit_complex_input, mp2rage_json_file)
+		qi_cmd = "qi mp2rage {} < {}".format(s.quit_complex_input%run, mp2rage_json_file)
 		s.runner.sh_run(qi_cmd)
 		for out in ("UNI", "T1"):
 			src = "MP2_{}.nii.gz".format(out)
-			dest = s.deriv_quit_folder + "/sub-{}_acq-mp2rage_run-1_{}.nii.gz".format(s.subj, out)
+			dest = s.deriv_quit_folder + "/sub-{}_acq-mp2rage_run-{}_{}.nii.gz".format(s.subj, run, out)
 			os.rename(src, dest)	
 
 	def execute(s):
 		"""
 			performs all fixes for anat folder and updates scans.tsv file.
 		"""
-		s.split_combined_niftis()
-		s.reshape_UNIT1_dims()
-		
-		#fix the <subj>_scans.tsv file
-		bids_util.rename_scan_file(s.sc_pre_str + "_run-1_inv-1and2_part-imag_MP2RAGE.nii.gz"
-			, [s.sc_pre_str + "_run-1_inv-1_part-imag_MP2RAGE.nii.gz",
-			s.sc_pre_str + "_run-1_inv-2_part-imag_MP2RAGE.nii.gz"])
-		bids_util.rename_scan_file(s.sc_pre_str + "_run-1_inv-1and2_part-real_MP2RAGE.nii.gz"
-			, [s.sc_pre_str + "_run-1_inv-1_part-real_MP2RAGE.nii.gz",
-			s.sc_pre_str + "_run-1_inv-2_part-real_MP2RAGE.nii.gz"])
+		for run in range(1,s.nruns+1):
+			s.split_combined_niftis(run)
+			s.reshape_UNIT1_dims(run)
+			
+			#fix the <subj>_scans.tsv file
+			bids_util.rename_scan_file(s.sc_pre_str + f"_run-{run}_inv-1and2_part-imag_MP2RAGE.nii.gz"
+				, [s.sc_pre_str + f"_run-{run}_inv-1_part-imag_MP2RAGE.nii.gz",
+				s.sc_pre_str + f"_run-{run}_inv-2_part-imag_MP2RAGE.nii.gz"])
+			bids_util.rename_scan_file(s.sc_pre_str + f"_run-{run}_inv-1and2_part-real_MP2RAGE.nii.gz"
+				, [s.sc_pre_str + f"_run-{run}_inv-1_part-real_MP2RAGE.nii.gz",
+				s.sc_pre_str + f"_run-{run}_inv-2_part-real_MP2RAGE.nii.gz"])
+			bids_util.rename_scan_file(s.sc_pre_str + f"_run-{run}_inv-1and2_MP2RAGE.nii.gz", [])
 		
 		#delete unwanted files
 		for f in s.blacklist:

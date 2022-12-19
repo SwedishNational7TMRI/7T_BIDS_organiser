@@ -244,3 +244,15 @@ def find_subject(tsv_file, subj):
 			return True
 	
 	return False
+
+def count_scans(pattern):
+	"""
+	Find number of scans with certain pattern
+	"""
+
+	nscans = 0
+	for line in scans_lines:
+		if pattern in line:
+			nscans += 1
+
+	return nscans
