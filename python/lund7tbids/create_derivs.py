@@ -7,6 +7,7 @@ import numpy as np
 from . import bids_util
 from .bids_util import log_print
 from nilearn import image
+import sys
 
 def resample_affine(affine_source, target):
 	"""
@@ -115,7 +116,14 @@ class spm12_module:
 		my_env = os.environ.copy()
 		my_env["PATH"] = my_env["PATH"] + ":" + cat12_path
 		s.runner.sh_run("bash call_cat12 -s {} ".format(s.spm12_path), s.unit1_no_bg, output_cat_dir, env=my_env)
-		os.remove(tmp_input)
+
+		cat12_output = output_cat_dir + "/mi{}_run-1_desc-{}noBackground_UNIT1.nii.gz".format(s.long_subj, s.src_dir)
+		json_src = f"{s.runner.study_dir}/rawdata/{s.long_subj}/anat/{s.long_subj}_acq-mp2rage_run-1_UNIT1.json"
+		
+		out_file = f"{s.runner.study_dir}/rawdata/{s.long_subj}/anat/{s.long_subj}_rec-pymp2rageCat12_run-1_UNIT1"
+		shutil.copyfile(cat12_output, f"{out_file}.nii.gz")
+		shutil.copyfile(json_src, f"{out_file}.json")
+		
 		
 class quit_module():	
 	"""

@@ -1,6 +1,6 @@
 import argparse
 import subprocess as sp
-from .pipeline import task_runner
+from .task_runner import task_runner
 
 def parse_inputs():
     parser = argparse.ArgumentParser(description='Process MP2RAGE')
@@ -19,13 +19,15 @@ def main():
 
     args = parse_inputs()
     runner = task_runner(args.study_dir, task_arg=['mp2rage'], json_config=args.config, verbose=args.v)
-    runner.run_subject(args.id, run_num=args.run)
+    # runner.run_subject(args.id, run_num=args.run)
     
     runner.task_list = ['mask_remove_bg']
-    runner.run_subject(args.id, run_num=args.run)
+    # runner.run_subject(args.id, run_num=args.run)
 
     runner.task_list = ['cat12']
     runner.run_subject(args.id, run_num=args.run)
+
+    
 
 if __name__ == '__main__':
     main()

@@ -3,7 +3,7 @@ Tool to fix errors in BIDS structure
 """
 
 import argparse
-from .pipeline import task_runner
+from .task_runner import task_runner
 import sys
 
 def parse_inputs():

@@ -1,13 +1,9 @@
 import json
-import sys
-import time
-import argparse
 import datetime
 import os
+import subprocess
 from . import bids_util
 from .bids_util import log_print
-import subprocess
-
 from . import fix_bids_tree
 from .create_pymp2rage import pymp2rage_module
 from .create_derivs import quit_module, spm12_module
@@ -16,19 +12,9 @@ from .create_derivs import quit_module, spm12_module
 # axel.landgren@skane.se / or gmail
 # Modified by Emil Ljungberg
 
-def dicom_convert(runner):
-	"""
-	task to convert dicoms to nifti files using DcmSourcedata_to_NiftiRawdata.sh 
-	 		
-	argument:
-		- runner: parent task_runner context
-	"""
-	subj = runner.subj
-	#TODO: allow use of global "orig_bids_root" option, requires mod script.  
-	log_print("running dicom convert on " + subj)
-	sh_cmd = "{}/DcmSourcedata_to_NiftiRawdata.sh".format(runner.code_path)
-	short_subj = subj[4:]
-	runner.sh_run("{}/DcmSourcedata_to_NiftiRawdata.sh".format(runner.code_path), short_subj)	
+#this will be stored in the log, might be useful if future versions are 
+#are incompatible? or not. 
+PROGRAM_VERSION = 0.3
 
 def fix_bids_task(runner):
 	"""
@@ -41,25 +27,17 @@ def fix_bids_task(runner):
 	vprint("running fix_bids convert on " + subj)
 	
 	fix_bids_tree.process_subject(runner)
-	#validator is no longer ran!
-	#fix_bids_tree.run_validator(runner)
 
 def mp2rage_task(runner, run_num=1):
 	"""
 	performs two small tasks computing input files and creating output 
-	images with QUIT an pymp2rage.  
+	images with pymp2rage.  
 	
 	argument:
 		- runner: parent task_runner context
 	"""
 	#TODO: add derivatives folder option properly
-	#run QUIT MP2RAGE processing
-	# quit_mod = quit_module(runner)
-	# runner.create_derivatives_destination("quit", "anat")
-	# quit_mod.create_QUIT_nifti()
-	# quit_mod.gen_T1_map_mp2rage()
 	
-	#run pymp2rage processing
 	pymp2_mod = pymp2rage_module(runner, run_num)
 	runner.create_derivatives_destination("pymp2rage", "anat")
 	pymp2_mod.create_pymp2rage_input_files()
@@ -111,6 +89,7 @@ def freesurfer_task(runner):
 		pass
 	cat12_no_bg_nif = runner.get_deriv_folder("cat12", "anat") + "/mi.input_no_bg.nii.gz"
 	fs_cmd = "recon-all -subjid {} -i {} -sd {}".format(subj, cat12_no_bg_nif, fs_out_dir)
+	
 	#TODO: do i need to pass the license file? read from environmental vars?
 	runner.sh_run(fs_cmd, "-threads " + str(runner.get_task_conf("threads")) , "-all")
 
@@ -129,6 +108,7 @@ class log_item():
 		s.subj = runner.subj
 		s.task = runner.cur_task
 		s.t0 = datetime.datetime.now()
+
 		#pass the running log file to bids_util so the prints will go there
 		s.log_dir = "{}/logs".format(s.runner.app_sd_on_glob("deriv_folder"))
 		task_log_file_name = s.log_dir + "/sub-{}/{}_{}.log".format(
@@ -219,7 +199,7 @@ class log_item():
 
 class task_runner():
 	"""
-	a class to control and log execution of pipeline processing steps. 
+	a class to control and log execution of a processing step
 	see main program documention for usage instructions. 
 	"""
 	
@@ -330,7 +310,6 @@ class task_runner():
 		s.dummy_run = dummy
 		
 		if(json_config==None):
-			#fetch a default config
 			json_config = os.path.join(study_dir, "/pipeline_conf.json")
 		else:
 			json_config = json_config
@@ -342,11 +321,6 @@ class task_runner():
 		s.config["global"]["version"] = PROGRAM_VERSION
 		input_json.close()
 		
-		# Append study root to keys
-		#for k in ["orig_bids_root", "deriv_folder", "fix_bids"]:
-		#	s.config['global'][k] = os.path.join(study_root, s.config['global'][k])
-		#
-		#s.config['fix_bids']['bids_output'] = os.path.join(study_root, s.config['fix_bids']['bids_output'])
 		
 		if(not task_arg == None):
 			s.task_list = [task_arg[0]]
@@ -368,8 +342,13 @@ class task_runner():
 			subj: a subject, typically from a list
 		"""
 		s.subj = subj 
+		if s.cur_task == 'fix_bids':
+			k = 'orig_bids_root'
+		else:
+			k = 'fix_bids'
 		participants_file = "{}/participants.tsv".format(
-			s.app_sd_on_glob("orig_bids_root"))
+			s.app_sd_on_glob(k))
+			
 		print(participants_file)
 		if (not bids_util.find_subject(participants_file, "sub-" + s.subj)):
 			print("Error: Invalid subject {}".format(subj))
@@ -410,42 +389,3 @@ class task_runner():
 		#write to log
 		task_log.close()
 
-#this will be stored in the log, might be useful if future versions are 
-#are incompatible? or not. 
-PROGRAM_VERSION = 0.3
-
-def main():
-	"""
-	set up a configuration of one or more to be run for one or more subject 
-	folders, loaded from a json file. 
-	intialize a task_runner instance that will execute this for each subject.  
-	"""
-	
-	parser = argparse.ArgumentParser(description = "process BIDS data from 7T Philips MRI")
-	parser.add_argument('-v', '--verbose',  action='store_true', default=False)
-	parser.add_argument('-c', '--config', default=None, type=str)
-	parser.add_argument('-t', '--task', nargs=1, default=None, type=str)
-	parser.add_argument('-d', '--dummy', action='store_true', default=False)
-	parser.add_argument('-s', '--study_dir', required=True, type=str)
-	parser.add_argument('subj_list', nargs='*')
-	args = parser.parse_args()
-	
-	if (args.study_dir == None):
-		sys.exit("Must supply a study directory root")
-		
-	#check if task is in there
-	runner = task_runner(args.study_dir, args.config, args.task, dummy=args.dummy, verbose=args.verbose)
-	
-	if (args.subj_list == []) and (args.config == None):
-		sys.exit("Either subject list or config file must be set")
-	elif (args.subj_list == []):
-		print("using subject list from conf: " + str(runner.config["subj_list"]))
-		subj_list = runner.config["subj_list"]
-	else:
-		subj_list = args.subj_list
-
-	for subj in subj_list:
-		runner.run_subject(subj)
-
-if __name__ == "__main__":
-   main()

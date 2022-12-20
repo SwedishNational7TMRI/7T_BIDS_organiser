@@ -1,7 +1,7 @@
 import os
 import subprocess as sp
 from . import bids_util
-from .pipeline import task_runner
+from .task_runner import task_runner
 
 def run_make_bids(study_dir, heuristic_file, subj_id,
                         do_organize=False, do_convert=False, do_validate=False, docker=False, verbose=False):
