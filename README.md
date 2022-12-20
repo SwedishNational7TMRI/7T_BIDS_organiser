@@ -11,9 +11,9 @@ The BIDS specification/standard is preferably browsed [online](https://bids-spec
     ├── sequences
     └── stimuli
 ```
-Note, the only folder that needs to be truly [BIDS compliant](https://bids-specification.readthedocs.io/en/stable/03-modality-agnostic-files.html) is the `/rawdata` folder and its compliancy to the BIDS standard should be checked with a [BIDS validator](https://github.com/bids-standard/bids-validator). There is also a tool in this repository for doing this check.
+Note, the only folder that needs to be truly [BIDS compliant](https://bids-specification.readthedocs.io/en/stable/03-modality-agnostic-files.html) is the `/rawdata` folder and its compliancy to the BIDS standard should be checked with a [BIDS validator](https://github.com/bids-standard/bids-validator), or the [online BIDS validator](https://bids-standard.github.io/bids-validator/). There is also a tool in this repository for doing this check.
 
-This is an example of what the subject structure looks like for a single session and single subject.
+This is an example of what the BIDS folder/file structure looks like for a single subject S01 with only one scans (session-level can be omitted):
 ```sh
 /studydir
     └── rawdata
@@ -32,6 +32,35 @@ This is an example of what the subject structure looks like for a single session
             │   └── sub-S01_scans.tsv
             └── task-rest_bold.json
 ```
+or in the case of two sessions (pre and post):
+```sh
+/studydir
+    └── rawdata
+            ├── CHANGES
+            ├── dataset_description.json
+            ├── participants.json
+            ├── participants.tsv
+            ├── README
+            ├── sub-S01
+            │   └──ses-pre
+	    │	│  ├── anat
+            │   │  ├── dwi
+            │   │  ├── fmap
+            │   │  ├── func
+            │   │  ├── sub-S01_ses-pre_scans.json
+            │   │  └── sub-S01_ses-pre_scans.tsv
+	    │	└──ses-post
+	    │	   ├── anat
+            │      ├── dwi
+            │      ├── fmap
+            │      ├── func
+            │      ├── sub-S01_ses-post_scans.json
+            │      └── sub-S01_ses-post_scans.tsv  
+            └── task-rest_bold.json
+```
+
+
+
 ## Dependencies
 - Python 3.8. Suggest using a anaconda environment (here called `py38`)
 ```
@@ -51,11 +80,12 @@ python -m pip install -e .
 ```
 
 After you have installed the python package you will have a set of tools available:
-- `7Tbids_import_dicoms`: Takes dicoms from an unsorted `dicomdir` and puts them in a organised folder structure `/sourcedata`.
-- `7Tbids_nifti2bids`: Takes your data from dicoms to BIDS-organised structure with NIfTI files in the `/rawdata` folder using the [heudiconv](https://heudiconv.readthedocs.io/en/latest/) routine. This is done in two steps
-    1. Call with option `--organize` to run `heudiconv` without conversion. Generates `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`.
+- `7Tbids_import_dicoms`: Takes dicoms from an "unsorted" DICOM directory and puts them in a organised folder structure `studydir/sourcedata`.
+It is encouraged to use this conversion as it facilitates trouble-shooting and human readibility of your DICOM data. 
+- `7Tbids_dicom2bids`: Takes your data from dicoms to BIDS-organised structure with NIfTI files in the `/rawdata` folder using the [heudiconv](https://heudiconv.readthedocs.io/en/latest/) routine. This is done in two steps
+    1. Call with option `--organize` to run `heudiconv` without conversion. Generates `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`. The `--organize` step is typically only needed to run once to create a study-specific heuristic-file which can be used on all subjects in the study. 
     2. Call with option `--convert` to do the actual nifti conversion. This requires input to appropriate heuristics file (see above).
-    - Both of these tools need a `heuristics` file. This is assumed to be stored in  `/code`.
+    - Both of these tools need a `heuristics` file. This is assumed to be stored in  `studydir/code`.
     - Both of these tools can be called with the `--docker` option which runs heudiconv from the downloaded docker container.
 - `7Tbids_validate`: Used to validate your BIDS tree structure.
 - `7Tbids_remove`: Used to remove files after QC
@@ -63,12 +93,11 @@ After you have installed the python package you will have a set of tools availab
 
 The following folder structure and conventions are assumed to be used
 - Original dicoms in `dicomdir`. These are "raw" DICOMS exported from the 7T archive. This folder will be used as inputs to some scripts and can be located anywhere.
-    - Your DICOM data might be stored with run numbers instead of subject ID. To do this mapping you can use a `study_key.tsv` file. See example in this repository.
 - Your `studydir` is the path to where you want your study data to be stored.
 - It is recommended to store your own study code in a specific directory, `studydir/code`. Suggestions from the BIDS standard is to put is in `studydir/code`.
-- Re-named and re-arranged dicoms will be stored in  `studydir/sourcedata`, which is the BIDS sourcedata-folder
+- Re-named and re-arranged dicoms will be stored in  `studydir/sourcedata`, which is the BIDS sourcedata-folder.
 - BIDS-organised NIfTIs in `studydir/rawdata`
-- You need a heuristics file for `heudiconv`. This should be stored in your code-folder. See the `misc` folder here in the repo for example.
+- You need a heuristics file for `heudiconv`. This should be stored in your code-folder, i.e. `studydir/code`. See the `misc` folder here in the repo for example.
 
 To convert data from raw DICOMS to a BIDS valid structure with NIFTI files it is recommended to set up a shell script with the following structure.
 
@@ -76,6 +105,7 @@ To convert data from raw DICOMS to a BIDS valid structure with NIFTI files it is
 STUDYDIR=<my_bids_dir>
 sID=<Study_ID>      #E.g. 7T049S02
 heuristics_file=7T049_CVI_heuristic.py # This is assumed to live in STUDYDIR/code
+pipeline_file=$STUDYDIR/code/pipeline_conf.json # Full path to where you keep your pipeline_conf.json-file
 
 DICOMDIR=<my_dicom_dir>
 # dicomdir -> sourcedata
@@ -100,7 +130,7 @@ DICOMDIR=<my_dicom_dir>
 # for this you need to specify a configuration file with -c
 # The pipeline configuration file is also assumed to live under studydir/code. Explanation for this file below
 # The fix_bids command will create a rawdata directory that is bids-compliant from which all further analysis is performed
-7Tbids_fix_bids -v --study_dir=$STUDYDIR -c pipeline_conf.json --id=$SUB
+7Tbids_fix_bids -v --study_dir=$STUDYDIR -c $pipeline_file --id=$sID
 
 # At this point you want to do some QC on your data. Decide which scans to discard and remove with command below
 # This will remove the nii.gz+json files from rawdata and the entry from the .tsv file
@@ -115,7 +145,7 @@ DICOMDIR=<my_dicom_dir>
 
 # To process MP2RAGE run
 mp2rage_runnum=1
-7Tbids_mp2rage --study_dir=$STUDYDIR --id=$SUB -c pipeline_conf_axel.json --run $mp2rage_runnum
+7Tbids_mp2rage --study_dir=$STUDYDIR --id=$SUB -c $pipeline_file --run $mp2rage_runnum
 
 # From this command you want to use the file with the naming mi<subject>_run-<run>_desc-pymp2ragenoBackground_UNIT1.nii
 ```
@@ -153,9 +183,7 @@ Explanation of `pipeline_conf.json`. You need to remove the comments (`<-`) befo
 ```
 
 ### TODO:
-- Change nifti2bids -> dicom2bids
 - Remove code directory as input. Instead assume that there is a code directory where the file is stored. Add this to documentation.
-- Subject ID is 7T049XXX, the full string, and not only S02 for instance. Change this. Participant ID is then sub-<SUBJECT_ID>, e.g., sub-7T049S02
 
 # Running on mac
 Most of these tools runs well on a mac, except some of the scripts in the `linescanning` repo. These uses the `readlink` command which works differently on linux and mac. You can install the linux type `readlink` tool from `brew` and then symlink it to fix it (although I have not been able to do this successfully yet (Emil Ljungberg))
