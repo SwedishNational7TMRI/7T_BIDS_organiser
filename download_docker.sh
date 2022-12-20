@@ -8,3 +8,4 @@ userID=$(id -u):$(id -g)
 ###   Get docker images:   ###
 docker pull nipy/heudiconv:latest
 docker pull bids/validator:latest
+docker pull nipreps/fmriprep:latest
