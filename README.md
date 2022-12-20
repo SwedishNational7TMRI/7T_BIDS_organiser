@@ -80,7 +80,7 @@ python -m pip install -e .
 ```
 
 After you have installed the python package you will have a set of tools available:
-- `7Tbids_import_dicoms`: Takes dicoms from an unsorted `DICOM input directory` and puts them in a organised folder structure `studydir/sourcedata`.
+- `7Tbids_import_dicoms`: Takes dicoms from an "unsorted" DICOM directory and puts them in a organised folder structure `studydir/sourcedata`.
 It is encoured to use this conversion as it facilitates trouble-shooting and human readibility of your DICOM data. 
 - `7Tbids_dicom2bids`: Takes your data from dicoms to BIDS-organised structure with NIfTI files in the `/rawdata` folder using the [heudiconv](https://heudiconv.readthedocs.io/en/latest/) routine. This is done in two steps
     1. Call with option `--organize` to run `heudiconv` without conversion. Generates `/rawdata/.heudiconv/sub-$sID/dicominfo.tsv` which is used to generate a relevant heuristic file for input to `heudiconv`. The `--organize` step is typically only needed to run once to create a study-specific heuristic-file which can be used on all subjects in the study. 
@@ -105,6 +105,7 @@ To convert data from raw DICOMS to a BIDS valid structure with NIFTI files it is
 STUDYDIR=<my_bids_dir>
 sID=<Study_ID>      #E.g. 7T049S02
 heuristics_file=7T049_CVI_heuristic.py # This is assumed to live in STUDYDIR/code
+pipeline_file=$STUDYDIR/code/pipeline_conf.json # Full path to where you keep your pipeline_conf.json-file
 
 DICOMDIR=<my_dicom_dir>
 # dicomdir -> sourcedata
@@ -129,7 +130,7 @@ DICOMDIR=<my_dicom_dir>
 # for this you need to specify a configuration file with -c
 # The pipeline configuration file is also assumed to live under studydir/code. Explanation for this file below
 # The fix_bids command will create a rawdata directory that is bids-compliant from which all further analysis is performed
-7Tbids_fix_bids -v --study_dir=$STUDYDIR -c pipeline_conf.json --id=$SUB
+7Tbids_fix_bids -v --study_dir=$STUDYDIR -c $pipeline_file --id=$sID
 
 # At this point you want to do some QC on your data. Decide which scans to discard and remove with command below
 # This will remove the nii.gz+json files from rawdata and the entry from the .tsv file
@@ -144,7 +145,7 @@ DICOMDIR=<my_dicom_dir>
 
 # To process MP2RAGE run
 mp2rage_runnum=1
-7Tbids_mp2rage --study_dir=$STUDYDIR --id=$SUB -c pipeline_conf_axel.json --run $mp2rage_runnum
+7Tbids_mp2rage --study_dir=$STUDYDIR --id=$SUB -c $pipeline_file --run $mp2rage_runnum
 
 # From this command you want to use the file with the naming mi<subject>_run-<run>_desc-pymp2ragenoBackground_UNIT1.nii
 ```
@@ -182,9 +183,7 @@ Explanation of `pipeline_conf.json`. You need to remove the comments (`<-`) befo
 ```
 
 ### TODO:
-- Change nifti2bids -> dicom2bids
 - Remove code directory as input. Instead assume that there is a code directory where the file is stored. Add this to documentation.
-- Subject ID is 7T049XXX, the full string, and not only S02 for instance. Change this. Participant ID is then sub-<SUBJECT_ID>, e.g., sub-7T049S02
 
 # Running on mac
 Most of these tools runs well on a mac, except some of the scripts in the `linescanning` repo. These uses the `readlink` command which works differently on linux and mac. You can install the linux type `readlink` tool from `brew` and then symlink it to fix it (although I have not been able to do this successfully yet (Emil Ljungberg))
