@@ -134,7 +134,17 @@ for f in ../rawdata/sub-*/ses-*/sub-*scans.tsv; do sed -i "" -e "s/_epi1/_magnit
 for f in ../rawdata/sub-*/ses-*/sub-*scans.tsv; do sed -i "" -e "s/_epi2/_fieldmap/" $f; done
 ```
 
-- Add the *Unit*, *intented use* as well as *B0FieldIdentifier* to the fieldmap-JSON file (see example below):
+- Add the SliceTiming to the BOLD json files (if applicable)
+Open the file Slice_timing_snippet.py and adapt the following parameters: *TR*, *nSlices*, *mbFactor* according to your dataset. Run the python script which generates a CSV-file with the corresponding slice timing (sliceTiming.csv).
+```bash
+python slice_timing_snippet.py
+```
+Control the values in your CSV-file. The number of rows should be the same as your number of slices and the highest number should be lower than your repetition time TR. Add the SliceTiming information to each BOLD json file using the modify_func.py.
+```bash
+python modify_func.py
+```
+
+- Add the *Unit*, *intented use for* as well as *B0FieldIdentifier* to the fieldmap-JSON file (see example below):
 ```json
 {
    "Units": "Hz",
@@ -142,38 +152,12 @@ for f in ../rawdata/sub-*/ses-*/sub-*scans.tsv; do sed -i "" -e "s/_epi2/_fieldm
    "B0FieldIdentifier": "b0map_fmap0"
 }
 ```
-Example: Run the following lines in modify_fmap.py to add the above mentioned information to all fieldmap json files in a multisession dataset:
-```python
-##### add data to json file
-import json
-import numpy as np
-from glob import glob as gl
-import os
-
-# get all fielmap json files
-files = np.sort(gl('../rawdata/sub-*/ses-*/fmap/*_fieldmap.json'))
-for f in files:
-    s = f.split(os.sep)[:-2]
-    str_intendedfor = os.path.join(*s)+'/func/*_bold.nii.gz'
-    file_intendedfor = gl(str_intendedfor)
-    func_file = file_intendedfor[-1].split("/")[-3:]
-    func_file = '/'+os.path.join(*func_file)
-    toadd = { "Units": "Hz", "IntendedFor": "bids::"+func_file, "B0FieldIdentifier": "b0map_fmap0"}
-
-    with open (f, 'r') as data:
-        json_data=json.load(data)
-        json_data.update(toadd)
-
-    with open (f, 'w') as data:
-        json.dump(json_data, data, indent=2)
+Example: Run the following lines in modify_fmap.py to add the above mentioned information to all fieldmap json files in a multisession dataset.
+```bash
+python modify_fmap.py
 ```
-
-- Add the SliceTiming to the BOLD json files
-(script from Peter Mannfolk - will be added soon)
-
-- Add the correct Phase Encoding Direction to the BOLD json files
-?
 
 
 ## open issues
 (will be added later)
+- Add the correct Phase Encoding Direction to the BOLD json files
