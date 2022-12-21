@@ -139,7 +139,7 @@ Open the file Slice_timing_snippet.py and adapt the following parameters: *TR*, 
 ```bash
 python slice_timing_snippet.py
 ```
-Control the values in your CSV-file. The number of rows should be the same as your number of slices and the highest number should be lower than your repetition time TR. Add the SliceTiming information to each BOLD json file using the modify_func.py.
+Control the values in your CSV-file and double check the slice order, should be ASCENDING, at the MRI scanner. The number of rows should be the same as your number of slices and the highest number should be lower than your repetition time TR. Add the SliceTiming information to each BOLD json file using the modify_func.py.
 ```bash
 python modify_func.py
 ```
