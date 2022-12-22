@@ -77,6 +77,7 @@ shell download_docker.sh
 This software is best used as a python package which is installed using `pip`. Python 3.8 or higher is required. Recommended that you do this in a an isolated conda or virtual environment. To install, navigate to the main directory and execute
 ```sh
 python -m pip install -e .
+git submodule init
 git submodule update
 ```
 
