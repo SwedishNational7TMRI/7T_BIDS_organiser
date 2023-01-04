@@ -139,16 +139,30 @@ Open the file Slice_timing_snippet.py and adapt the following parameters: *TR*, 
 ```bash
 python slice_timing_snippet.py
 ```
-Control the values in your CSV-file and double check the slice order, should be ASCENDING, at the MRI scanner. The number of rows should be the same as your number of slices and the highest number should be lower than your repetition time TR. Add the SliceTiming information to each BOLD json file using the modify_func.py.
+Control the values in your CSV-file and double check the slice order, should be ASCENDING, at the MRI scanner. The number of rows should be the same as your number of slices and the highest number should be lower than your repetition time TR. Add the *SliceTiming* information as well as the *B0FieldSource* to each BOLD json file using the modify_func.py.
+OBS! The *B0FieldSource* in the BOLD JSON file as well as the *B0FieldIdentifier* in the Fieldmap JSON file (see below) must be in line with the corresponding fieldmap case, see: https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/01-magnetic-resonance-imaging-data.html#types-of-fieldmaps
+```json
+{
+   "SliceTiming": [
+     0.0,
+     0.0529411764705882,
+     ...
+   ],
+   "B0FieldSource": "b0map_fmap0"
+}
+```
+
 ```bash
 python modify_func.py
 ```
 
-- Add the *Unit* and *intented use for* to the fieldmap-JSON file (see example below):
+
+- Add the *Unit*, *intented use for* and *B0FieldIdentifier* to the fieldmap-JSON file (see example below):
 ```json
 {
    "Units": "Hz",
-   "IntendedFor": "bids::/ses-post/func/sub-105_ses-post_task-rest_run-1_bold.nii.gz"
+   "IntendedFor": "bids::/ses-post/func/sub-105_ses-post_task-rest_run-1_bold.nii.gz",
+   "B0FieldIdentifier": "b0map_fmap0"
 }
 ```
 Example: Run the following lines in modify_fmap.py to add the above mentioned information to all fieldmap json files in a multisession dataset.
