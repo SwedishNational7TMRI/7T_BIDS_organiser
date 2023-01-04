@@ -144,12 +144,11 @@ Control the values in your CSV-file and double check the slice order, should be 
 python modify_func.py
 ```
 
-- Add the *Unit*, *intented use for* as well as *B0FieldIdentifier* to the fieldmap-JSON file (see example below):
+- Add the *Unit* and *intented use for* to the fieldmap-JSON file (see example below):
 ```json
 {
    "Units": "Hz",
-   "IntendedFor": "bids::/ses-post/func/sub-105_ses-post_task-rest_run-1_bold.nii.gz",
-   "B0FieldIdentifier": "b0map_fmap0"
+   "IntendedFor": "bids::/ses-post/func/sub-105_ses-post_task-rest_run-1_bold.nii.gz"
 }
 ```
 Example: Run the following lines in modify_fmap.py to add the above mentioned information to all fieldmap json files in a multisession dataset.
