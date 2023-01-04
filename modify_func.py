@@ -15,7 +15,7 @@ st = pd.read_csv('sliceTiming.csv', index_col=0)
 st = st['time'].tolist()
 
 # create the json entry, which should be the same for each bold sequence
-toadd = {"SliceTiming": st}
+toadd = {"SliceTiming": st, "B0FieldSource": "b0map_fmap0"}
 
 
 for f in files:
