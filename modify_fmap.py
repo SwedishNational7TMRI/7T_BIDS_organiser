@@ -12,7 +12,7 @@ for f in files:
     file_intendedfor = gl(str_intendedfor)
     func_file = file_intendedfor[-1].split("/")[-3:]
     func_file = '/'+os.path.join(*func_file)
-    toadd = { "Units": "Hz", "IntendedFor": "bids::"+func_file}
+    toadd = { "Units": "Hz", "IntendedFor": func_file}
 
     with open (f, 'r') as data:
         json_data=json.load(data)
