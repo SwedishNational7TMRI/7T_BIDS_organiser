@@ -115,6 +115,7 @@ class spm12_module:
 		cat12_path = os.path.join(LUND7T_MODULEPATH, 'lib', 'linescanning', 'bin')
 		my_env = os.environ.copy()
 		my_env["PATH"] = my_env["PATH"] + ":" + cat12_path
+		my_env["MATLAB_CMD"] = "matlab -nosplash -nodisplay -batch"
 		s.runner.sh_run("bash call_cat12 -s {} ".format(s.spm12_path), s.unit1_no_bg, output_cat_dir, env=my_env)
 
 		cat12_output = output_cat_dir + "/mi{}_run-1_desc-{}noBackground_UNIT1.nii.gz".format(s.long_subj, s.src_dir)
