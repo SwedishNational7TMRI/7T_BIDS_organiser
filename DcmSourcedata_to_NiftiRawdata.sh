@@ -22,19 +22,6 @@ Options:
 
 ################ ARGUMENTS ################
 
-# Define Folders
-codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-#studydir=$PWD
-studydir=`dirname -- "$codedir"`
-rawdatadir=$studydir/rawdata;
-#sourcedatadir=$studydir/sourcedata;
-dicomdir=$studydir/dicomdir;  #use original dicom folder
-scriptname=`basename $0 .sh`
-logdir=$studydir/derivatives/logs/sub-${sID}
-
-# Define Defaults
-#heuristicfile=$codedir/heuristic.py
-
 # Read required input arguments
 [ $# -ge 1 ] || { usage; }
 command=$@
@@ -51,6 +38,19 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
+
+# Define Folders
+codedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+#studydir=$PWD
+studydir=`dirname -- "$codedir"`
+rawdatadir=$studydir/rawdata;
+#sourcedatadir=$studydir/sourcedata;
+dicomdir=$studydir/dicomdir;  #use original dicom folder
+scriptname=`basename $0 .sh`
+logdir=$studydir/derivatives/logs/sub-${sID}
+
+# Define Defaults
+#heuristicfile=$codedir/heuristic.py
 
 # Get location and name for heuristic file
 #heuristicfiledir=`dirname $heuristicfile`
