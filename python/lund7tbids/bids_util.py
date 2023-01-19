@@ -79,10 +79,10 @@ def load_original_scans(runner):
 		- bids_out_arg: root of new bids tree
 		- subj_arg: subject ID string
 	"""
-	bids_out = runner.app_sd_on_task_conf("bids_output")
+	#bids_output is always rawdata, might remove config option
+	bids_out = runner.study_dir + "/" + runner.config["fix_bids"]["bids_output"]
 	global scans_lines
-	long_subj = "sub-" + runner.subj
-	scans = "{}/{}/{}_scans.tsv".format(bids_out, long_subj, long_subj)
+	scans = "{}/{}/{}_scans.tsv".format(bids_out, runner.long_subj, runner.long_subj)
 	f = open(scans, 'r')
 	scans_lines = f.readlines()
 	f.close()
@@ -95,9 +95,9 @@ def save_new_scans(runner):
 	arguments
 		-runner: parent task runner
 	"""
-	bids_out = runner.app_sd_on_task_conf("bids_output")
-	long_subj = "sub-" + runner.subj
-	scans = "{}/{}/{}_scans.tsv".format(bids_out, long_subj, long_subj)
+	#bids_output is always rawdata, might remove config option
+	bids_out = runner.study_dir + "/" + runner.config["fix_bids"]["bids_output"]
+	scans = "{}/{}/{}_scans.tsv".format(bids_out, runner.long_subj, runner.long_subj)
 	with open(scans, 'w') as f:
 		for line in scans_lines:
 			f.write(f"{line}")
@@ -118,7 +118,7 @@ def delete_scan_file(f):
 			new_lines.append(line)
 	scans_lines = new_lines
 	
-def rename_scan_file(src, dests):
+def rename_scan_file(src, dests, keep_src=False):
 	"""
 	Rename one filename and its row from <subj>_scans.tsv buffer
 	Can have several target destination filenames, resulting in
@@ -136,7 +136,11 @@ def rename_scan_file(src, dests):
 		line_file, rest_line  = line.split('\t', 1)
 		if(src == line_file):
 			for dest in dests:
-				log_print("--Renamed " + src + " to " + dest)
+				if(not keep_src):
+					log_print("--Renamed " + src + " to " + dest)
+				else:
+					new_lines.append(line)
+					log_print(f"--Added {dest} to scans file")
 				line = dest + "\t" + rest_line 
 				found = True
 				new_lines.append(line)

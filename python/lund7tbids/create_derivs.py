@@ -28,7 +28,7 @@ def resample_affine(affine_source, target):
 
 class spm12_module:
 	"""
-	Handles mask creatig, background removal and cat12 execution, using
+	Handles mask creating, background removal and cat12 execution, using
 	various options, (bet or spm12, pymp2rage or quit)
 	"""
 	def __init__(s, runner):
@@ -119,12 +119,23 @@ class spm12_module:
 		s.runner.sh_run("bash call_cat12 -s {} ".format(s.spm12_path), s.unit1_no_bg, output_cat_dir, env=my_env)
 
 		cat12_output = output_cat_dir + "/mi{}_run-1_desc-{}noBackground_UNIT1.nii.gz".format(s.long_subj, s.src_dir)
+	
 		json_src = f"{s.runner.study_dir}/rawdata/{s.long_subj}/anat/{s.long_subj}_acq-mp2rage_run-1_UNIT1.json"
-		
 		out_file = f"{s.runner.study_dir}/rawdata/{s.long_subj}/anat/{s.long_subj}_rec-pymp2rageCat12_run-1_UNIT1"
 		shutil.copyfile(cat12_output, f"{out_file}.nii.gz")
 		shutil.copyfile(json_src, f"{out_file}.json")
 		
+		#scans line metadata is copied from this line
+		metadata_file = f"anat/{s.long_subj}_acq-mp2rage_run-1_UNIT1.nii.gz"
+		new_line_name=f"anat/{s.long_subj}_rec-pymp2rageCat12_run-1_UNIT1.nii.gz"
+		#load in tsv file
+		bids_util.load_original_scans(s.runner)
+		#delete if already exist
+		bids_util.delete_scan_file(new_line_name)
+		#add new line based of UNIT1 line
+		bids_util.rename_scan_file(metadata_file, [new_line_name], keep_src=True)
+		#save tsv file
+		bids_util.save_new_scans(s.runner)
 		
 class quit_module():	
 	"""
