@@ -37,7 +37,7 @@ The folder structure needs to be:
 # Installation
 ... Docker...
 
-# Changes to the original files
+# Changes to the original files (can be ignored for standard users)
 **DcmDicomdir_to_DcmSourcedata.sh**
 - deleted this file (renaming of DICOM files) due to possible disk space issues.
 
