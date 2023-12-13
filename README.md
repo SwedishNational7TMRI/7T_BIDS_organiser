@@ -59,7 +59,7 @@ The folder structure needs to be:
 # Usage
 **1. Open Terminal and pull the repository into your study folder**
 ```bash
-git clone https://github.com/SwedishNational7TMRI/7T_BIDS_organiser.git
+git clone -b tr_testonnewdata https://github.com/SwedishNational7TMRI/7T_BIDS_organiser.git
 ```
 
 **2. Rename the downloaded folder into `/code`. Step into the `/code` folder and make all bash-files executeabel, e.g.:**
