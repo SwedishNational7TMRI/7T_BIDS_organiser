@@ -67,7 +67,7 @@ or in the case of two sessions (pre and post):
 conda create -n py38 python=3.8
 ```
 - SPM
-- Cat12. User version r1450 from this [download link](http://141.35.69.218/cat12/cat12_r1450.zip). See notes about SPM and CAT12 on mac below.
+- Cat12. User version r1450 from this [download link](http://141.35.69.218/cat12/cat12_r1450.zip) or [download link](https://www.neuro.uni-jena.de/cat12). See notes about SPM and CAT12 on mac below.
 - To download the necessary docker containers execute
 ```sh
 shell download_docker.sh
