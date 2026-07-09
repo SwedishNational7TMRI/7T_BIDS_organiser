@@ -7,30 +7,24 @@ Bash and python scripts to convert DICOM data into [BIDS-organised](https://bids
 Theodor Rumetshofer: theodor.rumetshofer@gmail.com
 
 # Recommended folder structure
-- BIDS-organised NIfTIs in `/rawdata`
-- Original DICOMs in `/dicomdir`. Inside the `/dicomdir` your should have all your subjects, sessions (if applicable) and than the different folders for each sequence
+First, create a `/study directory` and inside this folder a new folder called `/dicomdir`. Inside `/dicomdir`put all your subjects, sessions (if applicable) and than the different folders for each sequence which contain the dicom files. The subjects have to start with "sub-" followed by the ID of the subject. For the sequence folder, keep the original name.
 
 The folder structure needs to be the following:
 ```sh
-  /studydir
-      ├── code
-        ├── README.md
-        ├── heuristic.py # will be generated later
-        ├── DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh
-        ├── DcmSourcedata_to_NiftiRawdata.sh
-        ├── MRIQC.sh      
-      ├── rawdata # will be generated
-      ├── derivatives # will be generated
-      ├── dicomdir # DICOM files
-        ├── sub-001
-          ├── session 1 (if applicable)
-            ├── folder sequence
-              ├── *.DCM
-            ├── folder sequence
-              ├── *.DCM
-          ├── session 2 (if applicable)
-            ├── sub-002
-            ...
+  /study directory
+    /dicomdir
+      /sub-001  # subject folder
+        /session 1 (if applicable) # session folder
+          /sequence folder # this folder contains all dicoms from a specific sequence
+              *.DCM
+          /sequence folder # this folder contains all dicoms from a specific sequence
+              *.DCM
+        /session 2 (if applicable) # session folder
+        ...
+      /sub-002 # subject folder
+        ...
+      /sub-003 # subject folder
+        ...
 ```
 
 # Installation
@@ -41,8 +35,6 @@ The folder structure needs to be the following:
 docker pull nipy/heudiconv:latest  
 docker pull bids/validator:latest
 ```
-
-
 
 
 # Usage
