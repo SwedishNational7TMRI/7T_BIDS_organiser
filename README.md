@@ -10,7 +10,7 @@ Theodor Rumetshofer: theodor.rumetshofer@gmail.com
 - BIDS-organised NIfTIs in `/rawdata`
 - Original DICOMs in `/dicomdir`. Inside the `/dicomdir` your should have all your subjects, sessions (if applicable) and than the different folders for each sequence
 
-The folder structure needs to be:
+The folder structure needs to be the following:
 ```sh
   /studydir
       ├── code
