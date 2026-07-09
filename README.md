@@ -4,12 +4,11 @@ Tools to organise 7T data into BIDS structure
 Bash and python scripts to convert DICOM data into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
 
 # People
-...
+Theodor Rumetshofer: theodor.rumetshofer@gmail.com
 
 # Recommended folder structure
 - BIDS-organised NIfTIs in `/rawdata`
-- Original DICOMs in `/dicomdir`
-Inside the `/dicomdir` your should have all your subjects, sessions (if applicable) and than the different folders for each sequence
+- Original DICOMs in `/dicomdir`. Inside the `/dicomdir` your should have all your subjects, sessions (if applicable) and than the different folders for each sequence
 
 The folder structure needs to be:
 ```sh
@@ -35,25 +34,15 @@ The folder structure needs to be:
 ```
 
 # Installation
-... Docker...
 
-# Changes to the original files (can be ignored for standard users)
-**DcmDicomdir_to_DcmSourcedata.sh**
-- deleted this file (renaming of DICOM files) due to possible disk space issues.
+- Install DOCKER DESKTOP (https://www.docker.com/products/docker-desktop/)
+- installed the latest version of the docker images:
+```sh
+docker pull nipy/heudiconv:latest  
+docker pull bids/validator:latest
+```
 
-**DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh**
-- added additional help with an example
-- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
-- parameter ""-f convertall" instead of the heuristic file - not really needed at this step
-- added some echos to show what the programme is doing
-- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
 
-**DcmSourcedata_to_NiftiRawdata.sh**
-- added additional help with an example
-- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
-- apply the heuristic file from the /code folder
-- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
-- removed -t from the docker command to run multiple subjects
 
 
 # Usage
@@ -174,3 +163,21 @@ python modify_fmap.py
 ## open issues
 (will be added later)
 - Add the correct Phase Encoding Direction to the BOLD json files
+
+# Changes to the original files (can be ignored for standard users)
+**DcmDicomdir_to_DcmSourcedata.sh**
+- deleted this file (renaming of DICOM files) due to possible disk space issues.
+
+**DcmSourcedata_to_NiftiRawdata_generate_Dicominfo.sh**
+- added additional help with an example
+- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
+- parameter ""-f convertall" instead of the heuristic file - not really needed at this step
+- added some echos to show what the programme is doing
+- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
+
+**DcmSourcedata_to_NiftiRawdata.sh**
+- added additional help with an example
+- instead of the "sourcedatadir", "dicomdir" is used (because DICOM renaming was skipped)
+- apply the heuristic file from the /code folder
+- added sessions to your run by checking the folder name within the subject folder of the dicomdir + added session name to log file
+- removed -t from the docker command to run multiple subjects
