@@ -1,7 +1,7 @@
 # 7T BIDS organiser
 Tools to organise 7T data into BIDS structure
 
-Bash and python scripts to convert DICOM data into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data.
+Bash and python scripts to convert DICOM data into [BIDS-organised](https://bids.neuroimaging.io/) NIfTI data using [HEUDICONV](https://heudiconv.readthedocs.io/en/latest/)
 
 # People
 Theodor Rumetshofer: theodor.rumetshofer@gmail.com
