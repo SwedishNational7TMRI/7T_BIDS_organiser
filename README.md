@@ -36,7 +36,7 @@ The folder structure needs to be:
 # Installation
 
 - Install DOCKER DESKTOP (https://www.docker.com/products/docker-desktop/)
-- installed the latest version of the docker images:
+- install the latest version of the docker images:
 ```sh
 docker pull nipy/heudiconv:latest  
 docker pull bids/validator:latest
